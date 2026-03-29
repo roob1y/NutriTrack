@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import useStore from '../../store/useStore';
-import { todayStr, sumMacros, pct, MEAL_TYPES, showToast, formatDate } from '../../utils/helpers';
+import {
+  todayStr,
+  sumMacros,
+  pct,
+  MEAL_TYPES,
+  showToast,
+  formatDate,
+  getWeekKey,
+  DAY_LABELS,
+  getWeekDates,
+} from '../../utils/helpers';
 
 // ── Calorie ring ──────────────────────────────────────────────
 function CalorieRing({ consumed, target }) {
@@ -16,7 +26,9 @@ function CalorieRing({ consumed, target }) {
       <svg width="90" height="90" style={{ transform: 'rotate(-90deg)' }}>
         <circle cx="45" cy="45" r={norm} fill="none" stroke="var(--border)" strokeWidth={stroke} />
         <circle
-          cx="45" cy="45" r={norm}
+          cx="45"
+          cy="45"
+          r={norm}
           fill="none"
           stroke={isOver ? 'var(--red)' : 'var(--accent)'}
           strokeWidth={stroke}
@@ -39,9 +51,9 @@ function CalorieRing({ consumed, target }) {
 function MacroBars({ totals, targets }) {
   const rows = [
     { key: 'protein', label: 'Protein', color: 'protein', unit: 'g' },
-    { key: 'carbs',   label: 'Carbs',   color: 'carbs',   unit: 'g' },
-    { key: 'fat',     label: 'Fat',     color: 'fat',     unit: 'g' },
-    { key: 'fibre',   label: 'Fibre',   color: 'fibre',   unit: 'g' },
+    { key: 'carbs', label: 'Carbs', color: 'carbs', unit: 'g' },
+    { key: 'fat', label: 'Fat', color: 'fat', unit: 'g' },
+    { key: 'fibre', label: 'Fibre', color: 'fibre', unit: 'g' },
   ];
 
   return (
@@ -61,7 +73,10 @@ function MacroBars({ totals, targets }) {
             </div>
             <div className="macro-nums">
               <span style={{ color: over ? 'var(--red)' : 'var(--text)' }}>{val}</span>
-              <span style={{ color: 'var(--muted)' }}>/{target}{unit}</span>
+              <span style={{ color: 'var(--muted)' }}>
+                /{target}
+                {unit}
+              </span>
             </div>
           </div>
         );
@@ -73,24 +88,52 @@ function MacroBars({ totals, targets }) {
 // ── Add meal sheet ────────────────────────────────────────────
 function AddMealSheet({ date, onClose }) {
   const logMeal = useStore((s) => s.logMeal);
-  const [name, setName] = useState('');
+  const recipes = useStore((s) => s.recipes);
+
+  const [mode, setMode] = useState('free'); // 'free' | 'recipe'
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [mealType, setMealType] = useState('Lunch');
+  const [recipeSearch, setRecipeSearch] = useState('');
+
+  // Free entry fields
+  const [name, setName] = useState('');
   const [calories, setCalories] = useState('');
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
   const [fibre, setFibre] = useState('');
 
-  function handleSave() {
+  const filteredRecipes = recipes.filter((r) =>
+    r.name.toLowerCase().includes(recipeSearch.toLowerCase()),
+  );
+
+  function handleSaveFree() {
     if (!name.trim() || !calories) return;
     logMeal(date, {
       name: name.trim(),
       mealType,
       calories: Number(calories) || 0,
-      protein:  Number(protein)  || 0,
-      carbs:    Number(carbs)    || 0,
-      fat:      Number(fat)      || 0,
-      fibre:    Number(fibre)    || 0,
+      protein: Number(protein) || 0,
+      carbs: Number(carbs) || 0,
+      fat: Number(fat) || 0,
+      fibre: Number(fibre) || 0,
+      time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+    });
+    showToast('Meal logged ✓');
+    onClose();
+  }
+
+  function handleSaveRecipe() {
+    if (!selectedRecipe) return;
+    logMeal(date, {
+      name: selectedRecipe.name,
+      mealType,
+      recipeId: selectedRecipe.id,
+      calories: selectedRecipe.calories,
+      protein: selectedRecipe.protein,
+      carbs: selectedRecipe.carbs,
+      fat: selectedRecipe.fat,
+      fibre: selectedRecipe.fibre,
       time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     });
     showToast('Meal logged ✓');
@@ -99,17 +142,54 @@ function AddMealSheet({ date, onClose }) {
 
   return (
     <div>
-      <div className="section-title" style={{ marginTop: '4px' }}>ADD MEAL</div>
+      <div className="section-title" style={{ marginTop: '4px' }}>
+        ADD MEAL
+      </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-        <input
-          className="input"
-          placeholder="Meal name (e.g. Tofu stir fry)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          autoFocus
-        />
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        {[
+          { id: 'free', label: 'Free entry' },
+          { id: 'recipe', label: 'From recipe' },
+        ].map(({ id, label }) => (
+          <button
+            key={id}
+            onClick={() => {
+              setMode(id);
+              setSelectedRecipe(null);
+            }}
+            style={{
+              flex: 1,
+              padding: '10px',
+              borderRadius: '10px',
+              border: `1px solid ${mode === id ? 'var(--accent)' : 'var(--border)'}`,
+              background: mode === id ? 'var(--accent)' : 'var(--card)',
+              color: mode === id ? '#0d0d0f' : 'var(--muted)',
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
+      {/* Meal type — always visible */}
+      <div style={{ marginBottom: '20px' }}>
+        <div
+          style={{
+            fontSize: '11px',
+            color: 'var(--muted)',
+            fontWeight: 600,
+            marginBottom: '10px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}
+        >
+          Meal type
+        </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {MEAL_TYPES.map((t) => (
             <button
@@ -131,35 +211,343 @@ function AddMealSheet({ date, onClose }) {
             </button>
           ))}
         </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, marginBottom: '6px', textTransform: 'uppercase' }}>Calories *</div>
-            <input className="input" type="number" inputMode="numeric" placeholder="kcal" value={calories} onChange={(e) => setCalories(e.target.value)} />
-          </div>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, marginBottom: '6px', textTransform: 'uppercase' }}>Protein (g)</div>
-            <input className="input" type="number" inputMode="decimal" placeholder="g" value={protein} onChange={(e) => setProtein(e.target.value)} />
-          </div>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, marginBottom: '6px', textTransform: 'uppercase' }}>Carbs (g)</div>
-            <input className="input" type="number" inputMode="decimal" placeholder="g" value={carbs} onChange={(e) => setCarbs(e.target.value)} />
-          </div>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, marginBottom: '6px', textTransform: 'uppercase' }}>Fat (g)</div>
-            <input className="input" type="number" inputMode="decimal" placeholder="g" value={fat} onChange={(e) => setFat(e.target.value)} />
-          </div>
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, marginBottom: '6px', textTransform: 'uppercase' }}>Fibre (g)</div>
-            <input className="input" type="number" inputMode="decimal" placeholder="g" value={fibre} onChange={(e) => setFibre(e.target.value)} />
-          </div>
-        </div>
       </div>
 
-      <button className="btn-primary" onClick={handleSave} style={{ marginBottom: '10px' }}>
+      {/* Free entry mode */}
+      {mode === 'free' && (
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}
+        >
+          <input
+            className="input"
+            placeholder="Meal name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+          />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--muted)',
+                  fontWeight: 600,
+                  marginBottom: '6px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Calories *
+              </div>
+              <input
+                className="input"
+                type="number"
+                inputMode="numeric"
+                placeholder="kcal"
+                value={calories}
+                onChange={(e) => setCalories(e.target.value)}
+              />
+            </div>
+            <div>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--muted)',
+                  fontWeight: 600,
+                  marginBottom: '6px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Protein (g)
+              </div>
+              <input
+                className="input"
+                type="number"
+                inputMode="decimal"
+                placeholder="g"
+                value={protein}
+                onChange={(e) => setProtein(e.target.value)}
+              />
+            </div>
+            <div>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--muted)',
+                  fontWeight: 600,
+                  marginBottom: '6px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Carbs (g)
+              </div>
+              <input
+                className="input"
+                type="number"
+                inputMode="decimal"
+                placeholder="g"
+                value={carbs}
+                onChange={(e) => setCarbs(e.target.value)}
+              />
+            </div>
+            <div>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--muted)',
+                  fontWeight: 600,
+                  marginBottom: '6px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Fat (g)
+              </div>
+              <input
+                className="input"
+                type="number"
+                inputMode="decimal"
+                placeholder="g"
+                value={fat}
+                onChange={(e) => setFat(e.target.value)}
+              />
+            </div>
+            <div>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--muted)',
+                  fontWeight: 600,
+                  marginBottom: '6px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Fibre (g)
+              </div>
+              <input
+                className="input"
+                type="number"
+                inputMode="decimal"
+                placeholder="g"
+                value={fibre}
+                onChange={(e) => setFibre(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* From recipe mode */}
+      {mode === 'recipe' && (
+        <div style={{ marginBottom: '20px' }}>
+          <input
+            className="input"
+            placeholder="Search recipes..."
+            value={recipeSearch}
+            onChange={(e) => setRecipeSearch(e.target.value)}
+            style={{ marginBottom: '12px' }}
+            autoFocus
+          />
+          {filteredRecipes.length === 0 && (
+            <div
+              style={{
+                color: 'var(--muted)',
+                fontSize: '13px',
+                textAlign: 'center',
+                padding: '20px 0',
+              }}
+            >
+              {recipes.length === 0
+                ? 'No recipes saved yet — add some in the Planner tab'
+                : 'No matches'}
+            </div>
+          )}
+          {filteredRecipes.map((r) => (
+            <div
+              key={r.id}
+              onClick={() => setSelectedRecipe(r)}
+              style={{
+                background: selectedRecipe?.id === r.id ? 'rgba(255,140,66,0.08)' : 'var(--card)',
+                border: `1px solid ${selectedRecipe?.id === r.id ? 'var(--accent)' : 'var(--border)'}`,
+                borderRadius: 'var(--radius)',
+                padding: '14px 16px',
+                marginBottom: '8px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '3px' }}>
+                  {r.name}
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                  P {r.protein}g · C {r.carbs}g · F {r.fat}g
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: '24px',
+                    color: 'var(--accent)',
+                  }}
+                >
+                  {r.calories}
+                </div>
+                <div
+                  style={{
+                    fontSize: '10px',
+                    color: 'var(--muted)',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  kcal
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button
+        className="btn-primary"
+        onClick={mode === 'free' ? handleSaveFree : handleSaveRecipe}
+        disabled={mode === 'recipe' && !selectedRecipe}
+        style={{ marginBottom: '10px', opacity: mode === 'recipe' && !selectedRecipe ? 0.4 : 1 }}
+      >
         LOG MEAL
       </button>
-      <button className="btn-secondary" onClick={onClose}>CANCEL</button>
+      <button className="btn-secondary" onClick={onClose}>
+        CANCEL
+      </button>
+    </div>
+  );
+}
+
+// ── Planned meal suggestions ──────────────────────────────────
+function PlannedSuggestions({ date, onLog }) {
+  const weekPlan = useStore((s) => s.weekPlan);
+  const recipes = useStore((s) => s.recipes);
+  const mealLog = useStore((s) => s.mealLog);
+
+  const weekKey = getWeekKey(date);
+  const weekDates = getWeekDates(date);
+  const dayIndex = weekDates.indexOf(date);
+  const dayLabel = DAY_LABELS[dayIndex];
+  const dayPlan = weekPlan[weekKey]?.[dayLabel] || {};
+
+  // Filter out slots already logged today
+  const loggedNames = (mealLog[date] || []).map((m) => m.name.toLowerCase());
+  const suggestions = Object.entries(dayPlan)
+    .map(([slot, recipeId]) => {
+      const recipe = recipes.find((r) => r.id === recipeId);
+      if (!recipe) return null;
+      if (loggedNames.includes(recipe.name.toLowerCase())) return null;
+      return { slot, recipe };
+    })
+    .filter(Boolean);
+
+  return (
+    <div style={{ marginBottom: '24px' }}>
+      <div
+        style={{
+          fontSize: '11px',
+          color: 'var(--muted)',
+          fontWeight: 600,
+          letterSpacing: '0.5px',
+          textTransform: 'uppercase',
+          marginBottom: '12px',
+        }}
+      >
+        Planned for today
+      </div>
+
+      {suggestions.length === 0 ? (
+        <div
+          style={{
+            background: 'var(--card)',
+            border: '1px dashed var(--border)',
+            borderRadius: 'var(--radius)',
+            padding: '16px',
+            textAlign: 'center',
+            color: 'var(--muted)',
+            fontSize: '13px',
+          }}
+        >
+          Nothing planned for today — add meals in the Planner tab
+        </div>
+      ) : (
+        suggestions.map(({ slot, recipe }) => (
+          <div
+            key={slot}
+            onClick={() => onLog(recipe, slot)}
+            style={{
+              background: 'var(--card)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius)',
+              padding: '14px 16px',
+              marginBottom: '8px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer',
+              transition: 'border-color 0.2s',
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--accent)',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  marginBottom: '3px',
+                }}
+              >
+                {slot}
+              </div>
+              <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px' }}>
+                {recipe.name}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                P {recipe.protein}g · C {recipe.carbs}g · F {recipe.fat}g
+              </div>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                gap: '6px',
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: '26px',
+                  color: 'var(--accent)',
+                }}
+              >
+                {recipe.calories}
+              </div>
+              <div
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: 'var(--accent)',
+                  background: 'rgba(255,140,66,0.1)',
+                  border: '1px solid rgba(255,140,66,0.3)',
+                  borderRadius: '20px',
+                  padding: '3px 10px',
+                }}
+              >
+                Tap to log
+              </div>
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }
@@ -169,6 +557,7 @@ export default function MealsView() {
   const mealLog = useStore((s) => s.mealLog);
   const targets = useStore((s) => s.targets);
   const deleteMeal = useStore((s) => s.deleteMeal);
+  const logMeal = useStore((s) => s.logMeal);
 
   const [date, setDate] = useState(todayStr());
   const [adding, setAdding] = useState(false);
@@ -177,38 +566,86 @@ export default function MealsView() {
   const meals = mealLog[date] || [];
   const totals = sumMacros(meals);
   const remaining = targets.calories - totals.calories;
+  const isToday = date === todayStr();
 
   function closeSheet() {
     setAddClosing(true);
-    setTimeout(() => { setAdding(false); setAddClosing(false); }, 280);
+    setTimeout(() => {
+      setAdding(false);
+      setAddClosing(false);
+    }, 280);
   }
 
-  // Date navigation
   function offsetDate(n) {
     const d = new Date(date);
     d.setDate(d.getDate() + n);
     setDate(d.toISOString().slice(0, 10));
   }
 
+  function handleLogPlanned(recipe, slot) {
+    logMeal(date, {
+      name: recipe.name,
+      mealType: slot,
+      calories: recipe.calories,
+      protein: recipe.protein,
+      carbs: recipe.carbs,
+      fat: recipe.fat,
+      fibre: recipe.fibre,
+      time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+    });
+    showToast(`${recipe.name} logged ✓`);
+  }
+
   return (
     <div>
       {/* Date navigator */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '20px',
+        }}
+      >
         <button
           onClick={() => offsetDate(-1)}
-          style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '28px', cursor: 'pointer', padding: '0 8px' }}
-        >‹</button>
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--accent)',
+            fontSize: '28px',
+            cursor: 'pointer',
+            padding: '0 8px',
+          }}
+        >
+          ‹
+        </button>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '20px', letterSpacing: '1px' }}>
-            {date === todayStr() ? 'TODAY' : formatDate(date).toUpperCase()}
+          <div
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: '20px',
+              letterSpacing: '1px',
+            }}
+          >
+            {isToday ? 'TODAY' : formatDate(date).toUpperCase()}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{date}</div>
         </div>
         <button
           onClick={() => offsetDate(1)}
           disabled={date >= todayStr()}
-          style={{ background: 'none', border: 'none', color: date >= todayStr() ? 'var(--border)' : 'var(--accent)', fontSize: '28px', cursor: date >= todayStr() ? 'default' : 'pointer', padding: '0 8px' }}
-        >›</button>
+          style={{
+            background: 'none',
+            border: 'none',
+            color: date >= todayStr() ? 'var(--border)' : 'var(--accent)',
+            fontSize: '28px',
+            cursor: date >= todayStr() ? 'default' : 'pointer',
+            padding: '0 8px',
+          }}
+        >
+          ›
+        </button>
       </div>
 
       {/* Calorie summary */}
@@ -226,7 +663,9 @@ export default function MealsView() {
           <div className="cal-detail-row">
             <span className="cal-detail-label">Remaining</span>
             <span className={`cal-detail-val ${remaining < 0 ? 'red' : ''}`}>
-              {remaining < 0 ? `${Math.abs(Math.round(remaining))} over` : `${Math.round(remaining)} left`}
+              {remaining < 0
+                ? `${Math.abs(Math.round(remaining))} over`
+                : `${Math.round(remaining)} left`}
             </span>
           </div>
         </div>
@@ -235,11 +674,22 @@ export default function MealsView() {
       {/* Macro bars */}
       <MacroBars totals={totals} targets={targets} />
 
-      {/* Meal entries */}
+      {/* Planned suggestions — today only */}
+      {isToday && <PlannedSuggestions date={date} onLog={handleLogPlanned} />}
+
+      {/* Logged meals */}
       <div className="section-title">TODAY'S LOG</div>
 
       {meals.length === 0 && (
-        <div style={{ color: 'var(--muted)', fontSize: '14px', textAlign: 'center', padding: '24px 0', marginBottom: '12px' }}>
+        <div
+          style={{
+            color: 'var(--muted)',
+            fontSize: '14px',
+            textAlign: 'center',
+            padding: '24px 0',
+            marginBottom: '12px',
+          }}
+        >
           No meals logged yet
         </div>
       )}
@@ -256,7 +706,9 @@ export default function MealsView() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div className="meal-entry-cals">{meal.calories}</div>
-            <button className="delete-btn" onClick={() => deleteMeal(date, meal.id)}>✕</button>
+            <button className="delete-btn" onClick={() => deleteMeal(date, meal.id)}>
+              ✕
+            </button>
           </div>
         </div>
       ))}
@@ -265,7 +717,7 @@ export default function MealsView() {
         <span style={{ fontSize: '20px', lineHeight: 1 }}>+</span> Log a meal
       </button>
 
-      {/* Add meal bottom sheet */}
+      {/* Add meal sheet */}
       {adding && (
         <>
           <div
@@ -275,7 +727,10 @@ export default function MealsView() {
           <div
             className={`bottom-sheet${addClosing ? ' closing' : ''}`}
             style={{
-              position: 'fixed', bottom: 0, left: 0, right: 0,
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
               background: 'var(--surface)',
               borderTop: '1px solid var(--border)',
               borderRadius: '20px 20px 0 0',
@@ -287,7 +742,15 @@ export default function MealsView() {
               margin: '0 auto',
             }}
           >
-            <div style={{ width: '40px', height: '4px', background: 'var(--border)', borderRadius: '2px', margin: '12px auto 20px' }} />
+            <div
+              style={{
+                width: '40px',
+                height: '4px',
+                background: 'var(--border)',
+                borderRadius: '2px',
+                margin: '12px auto 20px',
+              }}
+            />
             <AddMealSheet date={date} onClose={closeSheet} />
           </div>
         </>

@@ -13,9 +13,35 @@ const useStore = create(
         fibre: 35,
       },
 
-      // ── Daily meal log ───────────────────────────
-      // { 'YYYY-MM-DD': [ { id, name, calories, protein, carbs, fat, fibre, mealType, time } ] }
-      mealLog: {},
+      // ── Actions: Meal Log ────────────────────────
+      logMeal: (date, meal) =>
+        set((state) => {
+          const day = state.mealLog[date] || [];
+          return {
+            mealLog: {
+              ...state.mealLog,
+              [date]: [...day, { ...meal, id: Date.now().toString() }],
+            },
+          };
+        }),
+
+      deleteMeal: (date, mealId) =>
+        set((state) => ({
+          mealLog: {
+            ...state.mealLog,
+            [date]: (state.mealLog[date] || []).filter((m) => m.id !== mealId),
+          },
+        })),
+
+      updateMealMacrosFromRecipe: (date, recipeId, macros) =>
+        set((state) => ({
+          mealLog: {
+            ...state.mealLog,
+            [date]: (state.mealLog[date] || []).map((m) =>
+              m.recipeId === recipeId ? { ...m, ...macros } : m,
+            ),
+          },
+        })),
 
       // ── Recipes ──────────────────────────────────
       // [ { id, name, servings, calories, protein, carbs, fat, fibre, ingredients: [ { name, amount, unit, calories, protein, carbs, fat, fibre } ], method } ]
