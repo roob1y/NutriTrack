@@ -271,23 +271,24 @@ function generateFromPlan(weekPlan, recipes, weekKey) {
   const aggregated = {};
 
   Object.values(plan).forEach((daySlots) => {
-    Object.values(daySlots).forEach((recipeId) => {
+    Object.entries(daySlots).forEach(([slot, slotData]) => {
+      const { recipeId, servings } = slotData || {};
       const recipe = recipes.find((r) => r.id === recipeId);
       if (!recipe?.ingredients) return;
+      const scale = (servings || 1) / (recipe.servings || 1);
       recipe.ingredients.forEach((ing) => {
         if (!ing.name) return;
         const key = ing.name.toLowerCase().trim();
+        const scaledAmount = Math.round((Number(ing.amount) || 0) * scale * 10) / 10;
         if (aggregated[key]) {
-          // Same unit — add amounts, otherwise just note it exists
           if (aggregated[key].unit === ing.unit) {
-            aggregated[key].amount =
-              (Number(aggregated[key].amount) || 0) + (Number(ing.amount) || 0);
+            aggregated[key].amount = Math.round((aggregated[key].amount + scaledAmount) * 10) / 10;
           }
         } else {
           aggregated[key] = {
             id: Date.now().toString() + Math.random(),
             name: ing.name,
-            amount: Number(ing.amount) || 0,
+            amount: scaledAmount,
             unit: ing.unit || '',
             checked: false,
             category: categorise(ing.name),

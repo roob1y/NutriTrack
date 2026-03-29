@@ -97,7 +97,7 @@ const useStore = create(
         })),
 
       // ── Actions: Week Plan ───────────────────────
-      setPlanSlot: (weekKey, day, slot, recipeId) =>
+      setPlanSlot: (weekKey, day, slot, recipeId, servings) =>
         set((state) => ({
           weekPlan: {
             ...state.weekPlan,
@@ -105,7 +105,7 @@ const useStore = create(
               ...state.weekPlan[weekKey],
               [day]: {
                 ...(state.weekPlan[weekKey]?.[day] || {}),
-                [slot]: recipeId,
+                [slot]: { recipeId, servings },
               },
             },
           },
