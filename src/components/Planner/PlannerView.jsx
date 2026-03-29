@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import useStore from '../../store/useStore';
 import { getWeekKey, getWeekDates, DAY_LABELS, PLAN_SLOTS, showToast } from '../../utils/helpers';
 import RecipesView from './RecipesView';
+import GroceryView from './GroceryView';
 
 // ── Day totals from plan ──────────────────────────────────────
 function getDayTotals(dayPlan, recipes) {
@@ -387,6 +388,7 @@ export default function PlannerView() {
         {[
           { id: 'plan', label: 'Week Plan' },
           { id: 'recipes', label: 'Recipes' },
+          { id: 'grocery', label: 'Grocery' },
         ].map(({ id, label }) => (
           <button
             key={id}
@@ -411,6 +413,7 @@ export default function PlannerView() {
 
       {subView === 'plan' && <WeekPlan />}
       {subView === 'recipes' && <RecipesView />}
+      {subView === 'grocery' && <GroceryView />}
     </div>
   );
 }
