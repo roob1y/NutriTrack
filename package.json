@@ -1,0 +1,40 @@
+{
+  "name": "nutritrack",
+  "version": "1.0.0",
+  "description": "Vegan nutrition tracking — part of the health ecosystem",
+  "main": "index.js",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "sync": "vite build && npx cap sync android",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roob1y/Nutritrack.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/roob1y/Nutritrack/issues"
+  },
+  "homepage": "https://github.com/roob1y/Nutritrack#readme",
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.3"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor-community/keep-awake": "^6.0.0",
+    "jspdf": "^2.5.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zustand": "^5.0.12"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "appId": "com.robbie.nutritrack",
+  "appName": "NutriTrack",
+  "webDir": "dist",
+  "android": {
+    "buildOptions": {
+      "keystorePath": null,
+      "keystoreAlias": null
+    }
+  },
+  "plugins": {
+    "App": {
+      "launchUrl": "index.html"
+    }
+  }
+}

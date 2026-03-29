@@ -1,0 +1,710 @@
+/* ══════════════════════════════════════════
+   styles.css — NutriTrack
+   Shared design system, NutriTrack accent.
+   Accent: #ff8c42 (warm orange)
+══════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #0d0d0f;
+  --surface: #16161a;
+  --card: #1e1e24;
+  --border: #2a2a35;
+  --accent: #ff8c42;
+  --accent2: #5b8dee;
+  --red: #ff4d6d;
+  --green: #c8f135;
+  --text: #f0f0f5;
+  --muted: #7a7a8c;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Header ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(13, 13, 15, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+.logo {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 28px;
+  letter-spacing: 2px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-badge {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ── Nav tabs ── */
+.nav {
+  display: flex;
+  padding: 16px 20px 0;
+  gap: 6px;
+  width: 100%;
+}
+
+.nav-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 10px;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.nav-btn.active {
+  background: var(--accent);
+  color: #0d0d0f;
+  border-color: var(--accent);
+}
+
+/* ── Views ── */
+.view {
+  display: none;
+  padding: 20px;
+}
+
+.view.active {
+  display: block;
+}
+
+/* ── Section title ── */
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+}
+
+.card.active {
+  border-color: var(--accent);
+}
+
+/* ── Macro ring / stats ── */
+.macro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.stat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 34px;
+  color: var(--accent);
+}
+
+.stat-val.over {
+  color: var(--red);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* ── Progress bars ── */
+.macro-bar-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.macro-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.macro-row:last-child {
+  margin-bottom: 0;
+}
+
+.macro-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.macro-track {
+  flex: 1;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.macro-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  max-width: 100%;
+}
+
+.macro-fill.protein {
+  background: #5b8dee;
+}
+.macro-fill.carbs {
+  background: #ff8c42;
+}
+.macro-fill.fat {
+  background: #ffd700;
+}
+.macro-fill.fibre {
+  background: #c8f135;
+}
+.macro-fill.over {
+  background: var(--red);
+}
+
+.macro-nums {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+  width: 72px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Calorie ring ── */
+.calorie-summary {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cal-ring-wrap {
+  flex-shrink: 0;
+  position: relative;
+  width: 90px;
+  height: 90px;
+}
+
+.cal-ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-ring-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.cal-ring-sub {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.cal-detail {
+  flex: 1;
+}
+
+.cal-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.cal-detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.cal-detail-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.cal-detail-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.cal-detail-val.accent {
+  color: var(--accent);
+}
+.cal-detail-val.red {
+  color: var(--red);
+}
+
+/* ── Meal log entries ── */
+.meal-entry {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.meal-entry-info {
+  flex: 1;
+}
+
+.meal-entry-name {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.meal-entry-macros {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.meal-entry-cals {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.meal-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2px 8px;
+  margin-right: 4px;
+  margin-top: 4px;
+}
+
+/* ── Add meal form ── */
+.add-meal-btn {
+  width: 100%;
+  padding: 14px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.add-meal-btn:active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Inputs ── */
+.input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  padding: 12px 14px;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.input::placeholder {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ── Primary button ── */
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1.5px;
+  color: #0d0d0f;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:active {
+  opacity: 0.85;
+}
+
+/* ── Secondary button ── */
+.btn-secondary {
+  width: 100%;
+  padding: 14px;
+  background: none;
+  border: 1px solid var(--muted);
+  border-radius: var(--radius);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* ── Back button ── */
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 0;
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--accent);
+  color: #0d0d0f;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 24px;
+  border-radius: 30px;
+  z-index: 200;
+  transition: transform 0.3s;
+  white-space: nowrap;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Bottom sheet ── */
+.bottom-sheet {
+  transform: translateY(0);
+  animation: slideUp 0.3s ease;
+}
+
+.bottom-sheet.closing {
+  animation: slideDown 0.28s ease forwards;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ── Grocery list ── */
+.grocery-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.grocery-item:last-child {
+  border-bottom: none;
+}
+
+.grocery-check {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 16px;
+  color: #0d0d0f;
+  transition: all 0.15s;
+}
+
+.grocery-check.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.grocery-item-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.grocery-item-name.checked {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.grocery-item-qty {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── Recipe card ── */
+.recipe-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.recipe-card:active {
+  border-color: var(--accent);
+}
+
+.recipe-card-header {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recipe-card-name {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 3px;
+}
+
+.recipe-card-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.recipe-card-cals {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: var(--accent);
+}
+
+/* ── Week plan grid ── */
+.plan-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-day-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.plan-day-card.has-plan {
+  border-color: rgba(255, 140, 66, 0.4);
+}
+
+.plan-day-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.plan-day-summary {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── Delete button ── */
+.delete-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.delete-btn:active {
+  color: var(--red);
+}
+
+/* ── Settings ── */
+.settings-row {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-row-label {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.settings-row-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.settings-row-arrow {
+  color: var(--accent);
+  font-size: 18px;
+}
+
+/* ── Responsive ── */
+@media (min-width: 768px) {
+  body {
+    font-size: 20px;
+    max-width: 620px;
+  }
+
+  .logo {
+    font-size: 42px;
+  }
+
+  .section-title {
+    font-size: 32px;
+  }
+
+  .stat-val {
+    font-size: 52px;
+  }
+
+  .nav-btn {
+    font-size: 18px;
+    padding: 16px;
+  }
+
+  .meal-entry-name {
+    font-size: 18px;
+  }
+
+  .meal-entry-cals {
+    font-size: 32px;
+  }
+
+  .btn-primary {
+    font-size: 26px;
+    padding: 20px;
+  }
+}
