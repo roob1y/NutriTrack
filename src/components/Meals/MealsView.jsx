@@ -11,6 +11,7 @@ import {
   DAY_LABELS,
   getWeekDates,
 } from '../../utils/helpers';
+import FoodSearch from '../Common/FoodSearch';
 
 // ── Calorie ring ──────────────────────────────────────────────
 function CalorieRing({ consumed, target }) {
@@ -145,11 +146,11 @@ function AddMealSheet({ date, onClose }) {
       <div className="section-title" style={{ marginTop: '4px' }}>
         ADD MEAL
       </div>
-
       {/* Mode toggle */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         {[
           { id: 'free', label: 'Free entry' },
+          { id: 'search', label: 'Search foods' },
           { id: 'recipe', label: 'From recipe' },
         ].map(({ id, label }) => (
           <button
@@ -175,7 +176,6 @@ function AddMealSheet({ date, onClose }) {
           </button>
         ))}
       </div>
-
       {/* Meal type — always visible */}
       <div style={{ marginBottom: '20px' }}>
         <div
@@ -332,6 +332,24 @@ function AddMealSheet({ date, onClose }) {
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Search mode */}
+      {mode === 'search' && (
+        <div style={{ marginBottom: '20px' }}>
+          <FoodSearch
+            placeholder="Search foods e.g. chicken breast..."
+            onSelect={(food) => {
+              setName(food.name);
+              setCalories(food.calories);
+              setProtein(food.protein);
+              setCarbs(food.carbs);
+              setFat(food.fat);
+              setFibre(food.fibre);
+              setMode('free');
+            }}
+          />
         </div>
       )}
 
