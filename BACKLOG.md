@@ -22,13 +22,15 @@
 
 ## v1.1 — Plan-driven Log
 
-- [ ] Today's planned meals shown as suggestions at top of Log tab
+- [x] Today's planned meals shown as suggestions at top of Log tab
   - Pulled from the week plan for today's date
   - Tap to instantly log with macros pre-filled
   - Disappears from suggestions once logged
   - Always visible — empty state if nothing planned today
-- [ ] Log a recipe directly from the Log tab (not just from recipe detail)
-- [ ] Quick-add from recent meals — last 10 meals accessible in one tap
+- [x] Log a recipe directly from the Log tab (not just from recipe detail)
+- [x] Quick-add from recent meals — last 10 meals accessible in one tap
+- [ ] Meal prep planning — assign a recipe to multiple consecutive days at once, with presets for 3-day and 4-day preps
+- [ ] Progress view weekly calorie bar chart not displaying correctly
 
 ---
 
