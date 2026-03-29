@@ -76,10 +76,10 @@
 
 ## v1.5 — Progress Improvements
 
-- [ ] Longest logging streak
-- [ ] Weekly average trend across multiple weeks (not just current week)
-- [ ] Best macro day — day you hit closest to all targets simultaneously
-- [ ] Copy yesterday's log to today
+- [x] Longest logging streak
+- [x] Weekly average trend across multiple weeks (not just current week)
+- [x] Best macro day — day you hit closest to all targets simultaneously
+- [x] Copy yesterday's log to today
 
 ---
 
