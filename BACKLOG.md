@@ -70,7 +70,7 @@
 - [x] Checked grocery items stay in list until manually deleted
 - [x] Grocery categories moved to src/data/groceryCategories.js
 - [x] Copy a single day's meals to another day — pick source day, pick target day
-- [ ] Meal prep planning with 3/4 day presets
+- [x] Meal prep planning with 3/4 day presets
 
 ---
 
