@@ -3,63 +3,80 @@
 ## v1.0 — Foundation ✓ Complete
 
 - [x] Daily meal log with free-entry meals
-- [x] Calorie ring + macro progress bars
-- [x] Date navigation
-- [x] Weekly progress view
-- [x] Daily targets editor
-- [x] Zustand persistence
-- [x] NutriTrack design system (orange accent)
-- [x] Capacitor config
+- [x] Calorie ring and macro progress bars
+- [x] Date navigator — log any past day
+- [x] Weekly progress view — bar chart and avg stats
+- [x] Daily targets editor via settings bottom sheet
+- [x] 3-tab nav (Log, Planner, Progress) with Settings in header
+- [x] Week plan — Mon–Sun, 4 slots per day (Breakfast/Lunch/Dinner/Snack)
+- [x] Week navigator — browse past and future weeks
+- [x] Recipe library — add/edit/delete with structured ingredients
+- [x] Macro auto-sum from ingredients on recipe form
+- [x] Recipe detail view with method and full macro breakdown
+- [x] Log recipe as meal from recipe detail
+- [x] Recipe picker sheet when assigning to plan slots
+- [x] Zustand persistence via localStorage
+- [x] Capacitor config for Android
 
 ---
 
-## v1.1 — Recipes + Meal Plan
+## v1.1 — Plan-driven Log
 
-- [ ] Recipe model — name, servings, calories, protein, carbs, fat, fibre, ingredients[], method
-- [ ] Recipe list view — RecipesView
-- [ ] Add recipe form
-- [ ] Edit / delete recipe
-- [ ] Log a recipe as a meal (prefills macro form)
-- [ ] Weekly meal plan — PlanView
-- [ ] Plan grid — Mon–Sun, slots per day (Breakfast / Lunch / Dinner / Snack)
-- [ ] Assign recipe to a plan slot
-- [ ] View plan day totals (estimated calories for the day)
+- [ ] Today's planned meals shown as suggestions at top of Log tab
+  - Pulled from the week plan for today's date
+  - Tap to instantly log with macros pre-filled
+  - Disappears from suggestions once logged
+  - Always visible — empty state if nothing planned today
+- [ ] Log a recipe directly from the Log tab (not just from recipe detail)
+- [ ] Quick-add from recent meals — last 10 meals accessible in one tap
 
 ---
 
 ## v1.2 — Grocery List
 
-- [ ] GroceryView
-- [ ] Generate list from current week plan
-- [ ] Aggregate duplicate ingredients
-- [ ] Tick items off
-- [ ] Clear checked
-- [ ] Manual add item
+- [ ] GroceryView — accessible from Planner tab
+- [ ] Auto-generate list from current week plan (aggregate all recipe ingredients)
+- [ ] Manual add items
+- [ ] Tick off items as you shop
+- [ ] Clear all checked items
+- [ ] Organise by category (produce, tins, grains etc)
 
 ---
 
-## v1.3 — Export + History
+## v1.3 — Planner Improvements
 
-- [ ] Export CSV — daily meal logs
-- [ ] Export PDF — branded summary report (jspdf)
-- [ ] History browser — pick any week
-- [ ] Streak counter — consecutive days with any log entry
-
----
-
-## v1.4 — Food Database
-
-- [ ] Open Food Facts API search
-- [ ] Barcode scan (Capacitor camera)
-- [ ] USDA FoodData Central fallback
-- [ ] Local cache of recent lookups
+- [ ] Day calorie total on each plan day — shows under/over vs target
+- [ ] Copy this week's plan to next week
+- [ ] "Log today's plan" — one tap logs all planned meals for today
+- [ ] Duplicate a recipe
+- [ ] Scale a recipe by servings — adjusts all ingredient amounts and macros proportionally
+- [ ] Search and filter recipes by macro targets (e.g. high protein)
 
 ---
 
-## Ship Alone
+## v1.4 — Progress Improvements
 
-- [ ] Quick-add from recent meals — last 10 meals accessible in one tap
+- [ ] Longest logging streak
+- [ ] Weekly average trend across multiple weeks (not just current week)
+- [ ] Best macro day — day you hit closest to all targets simultaneously
 - [ ] Copy yesterday's log to today
-- [ ] Meal templates — save a frequently eaten meal as a template
-- [ ] Water intake tracker
-- [ ] Calorie target auto-adjust on training days (FitTrack integration)
+
+---
+
+## v1.5 — Food Database
+
+- [ ] Open Food Facts API search on add meal and add ingredient forms
+- [ ] USDA FoodData Central as fallback
+- [ ] Barcode scanner via Capacitor camera
+- [ ] Cache recent lookups locally
+
+---
+
+## Future
+
+- [ ] Export weekly log as branded PDF (jspdf)
+- [ ] Export meal log as CSV
+- [ ] Meal templates — save a frequently eaten meal without it being a full recipe
+- [ ] FitTrack integration — training day type adjusts daily calorie target
+- [ ] BodyTrack integration — flag muscle loss risk if deficit too aggressive
+- [ ] On-device AI meal suggestions
