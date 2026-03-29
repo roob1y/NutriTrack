@@ -43,12 +43,12 @@
 
 ## v1.3 — Grocery List
 
-- [ ] GroceryView — accessible from Planner tab
-- [ ] Auto-generate list from current week plan (aggregate all recipe ingredients)
-- [ ] Manual add items
-- [ ] Tick off items as you shop
-- [ ] Clear all checked items
-- [ ] Organise by category (produce, tins, grains etc)
+- [x] GroceryView — accessible from Planner tab
+- [x] Auto-generate list from current week plan (aggregate all recipe ingredients)
+- [x] Manual add items
+- [x] Tick off items as you shop
+- [x] Clear all checked items
+- [x] Organise by category (produce, tins, grains etc)
 
 ---
 
