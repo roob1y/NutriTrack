@@ -230,7 +230,7 @@ function RecipeForm({ existing, onClose }) {
               textTransform: 'uppercase',
             }}
           >
-            Servings
+            Base portions (how many this recipe makes)
           </div>
           <input
             className="input"
@@ -433,6 +433,17 @@ function RecipeForm({ existing, onClose }) {
 
 // ── Recipe detail view ────────────────────────────────────────
 function RecipeDetail({ recipe, onBack, onEdit, onLogMeal }) {
+  const [servings, setServings] = useState(recipe.servings || 1);
+  const scale = servings / (recipe.servings || 1);
+
+  const scaled = {
+    calories: Math.round(recipe.calories * scale),
+    protein: Math.round(recipe.protein * scale * 10) / 10,
+    carbs: Math.round(recipe.carbs * scale * 10) / 10,
+    fat: Math.round(recipe.fat * scale * 10) / 10,
+    fibre: Math.round(recipe.fibre * scale * 10) / 10,
+  };
+
   return (
     <div>
       <button className="back-btn" onClick={onBack}>
@@ -450,12 +461,100 @@ function RecipeDetail({ recipe, onBack, onEdit, onLogMeal }) {
           {recipe.name.toUpperCase()}
         </h2>
         <div style={{ fontSize: '13px', color: 'var(--muted)' }}>
-          {recipe.servings} serving{recipe.servings !== 1 ? 's' : ''} ·{' '}
           {recipe.ingredients?.length || 0} ingredients
         </div>
       </div>
 
-      {/* Macro summary */}
+      {/* Servings adjuster */}
+      <div
+        style={{
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius)',
+          padding: '16px',
+          marginBottom: '16px',
+        }}
+      >
+        <div
+          style={{
+            fontSize: '11px',
+            color: 'var(--muted)',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            marginBottom: '12px',
+            letterSpacing: '0.5px',
+          }}
+        >
+          Portions
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            onClick={() =>
+              setServings((s) => Math.max(0.5, Math.round(((parseFloat(s) || 1) - 1) * 10) / 10))
+            }
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--text)',
+              fontSize: '20px',
+              width: '44px',
+              height: '44px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            −
+          </button>
+          <input
+            className="input"
+            type="number"
+            inputMode="decimal"
+            value={servings}
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (raw === '' || raw === '.') {
+                setServings(raw);
+                return;
+              }
+              const val = parseFloat(raw);
+              if (!isNaN(val) && val > 0) setServings(val);
+            }}
+            style={{
+              flex: 1,
+              textAlign: 'center',
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: '28px',
+              color: 'var(--accent)',
+              padding: '8px',
+            }}
+          />
+          <button
+            onClick={() => setServings((s) => Math.round(((parseFloat(s) || 1) + 1) * 10) / 10)}
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--text)',
+              fontSize: '20px',
+              width: '44px',
+              height: '44px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* Macro summary — scaled */}
       <div
         style={{
           background: 'var(--card)',
@@ -475,7 +574,7 @@ function RecipeDetail({ recipe, onBack, onEdit, onLogMeal }) {
               color: 'var(--accent)',
             }}
           >
-            {recipe.calories}
+            {scaled.calories}
           </div>
           <div
             style={{
@@ -497,7 +596,7 @@ function RecipeDetail({ recipe, onBack, onEdit, onLogMeal }) {
                 color: 'var(--text)',
               }}
             >
-              {recipe[key]}g
+              {scaled[key]}g
             </div>
             <div
               style={{
@@ -513,7 +612,7 @@ function RecipeDetail({ recipe, onBack, onEdit, onLogMeal }) {
         ))}
       </div>
 
-      {/* Ingredients */}
+      {/* Ingredients — scaled amounts */}
       {recipe.ingredients?.length > 0 && (
         <>
           <div className="section-title">INGREDIENTS</div>
@@ -541,12 +640,14 @@ function RecipeDetail({ recipe, onBack, onEdit, onLogMeal }) {
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '14px' }}>{ing.name}</div>
                   <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                    {ing.amount}
-                    {ing.unit} · {ing.calories} kcal
+                    {Math.round(ing.amount * scale * 10) / 10}
+                    {ing.unit} · {Math.round(ing.calories * scale)} kcal
                   </div>
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'right' }}>
-                  P {ing.protein}g · C {ing.carbs}g · F {ing.fat}g
+                  P {Math.round(ing.protein * scale * 10) / 10}g · C{' '}
+                  {Math.round(ing.carbs * scale * 10) / 10}g · F{' '}
+                  {Math.round(ing.fat * scale * 10) / 10}g
                 </div>
               </div>
             ))}
@@ -576,7 +677,11 @@ function RecipeDetail({ recipe, onBack, onEdit, onLogMeal }) {
         </>
       )}
 
-      <button className="btn-primary" onClick={onLogMeal} style={{ marginBottom: '10px' }}>
+      <button
+        className="btn-primary"
+        onClick={() => onLogMeal(recipe, servings)}
+        style={{ marginBottom: '10px' }}
+      >
         LOG AS MEAL TODAY
       </button>
       <button className="btn-secondary" onClick={onEdit}>
@@ -589,14 +694,26 @@ function RecipeDetail({ recipe, onBack, onEdit, onLogMeal }) {
 // ── Main recipes view ─────────────────────────────────────────
 export default function RecipesView() {
   const recipes = useStore((s) => s.recipes);
-  const addRecipe = useStore((s) => s.addRecipe);
   const deleteRecipe = useStore((s) => s.deleteRecipe);
+  const addRecipe = useStore((s) => s.addRecipe);
   const logMeal = useStore((s) => s.logMeal);
 
   const [adding, setAdding] = useState(false);
   const [addClosing, setAddClosing] = useState(false);
   const [selected, setSelected] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [search, setSearch] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    minCalories: '',
+    maxCalories: '',
+    minProtein: '',
+    maxProtein: '',
+    minCarbs: '',
+    maxCarbs: '',
+    minFat: '',
+    maxFat: '',
+  });
 
   function closeForm() {
     setAddClosing(true);
@@ -607,22 +724,38 @@ export default function RecipesView() {
     }, 280);
   }
 
-  function handleLogMeal(recipe) {
-    const today = todayStr();
+  function handleLogMeal(recipe, servings) {
+    const today = new Date().toISOString().slice(0, 10);
+    const scale = (servings || 1) / (recipe.servings || 1);
     logMeal(today, {
       name: recipe.name,
       mealType: 'Meal',
       recipeId: recipe.id,
-      calories: recipe.calories,
-      protein: recipe.protein,
-      carbs: recipe.carbs,
-      fat: recipe.fat,
-      fibre: recipe.fibre,
+      calories: Math.round(recipe.calories * scale),
+      protein: Math.round(recipe.protein * scale * 10) / 10,
+      carbs: Math.round(recipe.carbs * scale * 10) / 10,
+      fat: Math.round(recipe.fat * scale * 10) / 10,
+      fibre: Math.round(recipe.fibre * scale * 10) / 10,
       time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     });
     showToast(`${recipe.name} logged ✓`);
     setSelected(null);
   }
+
+  const activeFilterCount = Object.values(filters).filter((v) => v !== '').length;
+
+  const filtered = recipes.filter((r) => {
+    if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filters.minCalories && r.calories < Number(filters.minCalories)) return false;
+    if (filters.maxCalories && r.calories > Number(filters.maxCalories)) return false;
+    if (filters.minProtein && r.protein < Number(filters.minProtein)) return false;
+    if (filters.maxProtein && r.protein > Number(filters.maxProtein)) return false;
+    if (filters.minCarbs && r.carbs < Number(filters.minCarbs)) return false;
+    if (filters.maxCarbs && r.carbs > Number(filters.maxCarbs)) return false;
+    if (filters.minFat && r.fat < Number(filters.minFat)) return false;
+    if (filters.maxFat && r.fat > Number(filters.maxFat)) return false;
+    return true;
+  });
 
   if (selected) {
     return (
@@ -634,7 +767,7 @@ export default function RecipesView() {
           setSelected(null);
           setAdding(true);
         }}
-        onLogMeal={() => handleLogMeal(selected)}
+        onLogMeal={handleLogMeal}
       />
     );
   }
@@ -644,6 +777,131 @@ export default function RecipesView() {
       <div className="section-title" style={{ marginTop: '4px' }}>
         MY RECIPES
       </div>
+
+      {/* Search + filter row */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+        <input
+          className="input"
+          placeholder="Search recipes..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ flex: 1 }}
+        />
+        <button
+          onClick={() => setFiltersOpen((v) => !v)}
+          style={{
+            flexShrink: 0,
+            padding: '12px 14px',
+            background: activeFilterCount > 0 ? 'var(--accent)' : 'var(--card)',
+            border: `1px solid ${activeFilterCount > 0 ? 'var(--accent)' : 'var(--border)'}`,
+            borderRadius: '8px',
+            color: activeFilterCount > 0 ? '#0d0d0f' : 'var(--muted)',
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+        </button>
+      </div>
+
+      {/* Macro filters */}
+      {filtersOpen && (
+        <div
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)',
+            padding: '16px',
+            marginBottom: '16px',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '11px',
+              color: 'var(--muted)',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginBottom: '14px',
+            }}
+          >
+            Filter by macro range
+          </div>
+          {[
+            { label: 'Calories', minKey: 'minCalories', maxKey: 'maxCalories', unit: 'kcal' },
+            { label: 'Protein', minKey: 'minProtein', maxKey: 'maxProtein', unit: 'g' },
+            { label: 'Carbs', minKey: 'minCarbs', maxKey: 'maxCarbs', unit: 'g' },
+            { label: 'Fat', minKey: 'minFat', maxKey: 'maxFat', unit: 'g' },
+          ].map(({ label, minKey, maxKey, unit }) => (
+            <div key={label} style={{ marginBottom: '12px' }}>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--muted)',
+                  fontWeight: 600,
+                  marginBottom: '6px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {label} ({unit})
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  className="input"
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="Min"
+                  value={filters[minKey]}
+                  onChange={(e) => setFilters((f) => ({ ...f, [minKey]: e.target.value }))}
+                  style={{ flex: 1 }}
+                />
+                <span style={{ color: 'var(--muted)', fontSize: '13px' }}>–</span>
+                <input
+                  className="input"
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="Max"
+                  value={filters[maxKey]}
+                  onChange={(e) => setFilters((f) => ({ ...f, [maxKey]: e.target.value }))}
+                  style={{ flex: 1 }}
+                />
+              </div>
+            </div>
+          ))}
+          {activeFilterCount > 0 && (
+            <button
+              onClick={() =>
+                setFilters({
+                  minCalories: '',
+                  maxCalories: '',
+                  minProtein: '',
+                  maxProtein: '',
+                  minCarbs: '',
+                  maxCarbs: '',
+                  minFat: '',
+                  maxFat: '',
+                })
+              }
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--red)',
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: 0,
+                marginTop: '4px',
+              }}
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
+      )}
 
       {recipes.length === 0 && (
         <div
@@ -658,7 +916,20 @@ export default function RecipesView() {
         </div>
       )}
 
-      {recipes.map((recipe) => (
+      {recipes.length > 0 && filtered.length === 0 && (
+        <div
+          style={{
+            color: 'var(--muted)',
+            fontSize: '14px',
+            textAlign: 'center',
+            padding: '32px 0',
+          }}
+        >
+          No recipes match your search or filters
+        </div>
+      )}
+
+      {filtered.map((recipe) => (
         <div key={recipe.id} className="recipe-card" onClick={() => setSelected(recipe)}>
           <div className="recipe-card-header">
             <div>
