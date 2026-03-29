@@ -1,270 +1,10 @@
 import React, { useState } from 'react';
 import useStore from '../../store/useStore';
 import { getWeekKey, getWeekDates, showToast } from '../../utils/helpers';
+import { CATEGORIES, categorise } from '../../data/groceryCategories';
 
 // ── Category definitions ──────────────────────────────────────
-const CATEGORIES = [
-  {
-    label: 'Vegetables',
-    keywords: [
-      'carrot',
-      'broccoli',
-      'spinach',
-      'kale',
-      'onion',
-      'garlic',
-      'tomato',
-      'pepper',
-      'courgette',
-      'zucchini',
-      'cucumber',
-      'lettuce',
-      'cabbage',
-      'cauliflower',
-      'mushroom',
-      'potato',
-      'sweet potato',
-      'aubergine',
-      'eggplant',
-      'celery',
-      'leek',
-      'beetroot',
-      'pea',
-      'corn',
-      'asparagus',
-      'squash',
-      'pumpkin',
-    ],
-  },
-  {
-    label: 'Fruits',
-    keywords: [
-      'apple',
-      'banana',
-      'orange',
-      'lemon',
-      'lime',
-      'mango',
-      'pineapple',
-      'strawberry',
-      'blueberry',
-      'raspberry',
-      'grape',
-      'melon',
-      'watermelon',
-      'peach',
-      'pear',
-      'cherry',
-      'avocado',
-      'coconut',
-      'kiwi',
-      'fig',
-      'date',
-      'berry',
-    ],
-  },
-  {
-    label: 'Legumes & Pulses',
-    keywords: [
-      'lentil',
-      'chickpea',
-      'black bean',
-      'kidney bean',
-      'cannellini',
-      'butter bean',
-      'edamame',
-      'soya',
-      'soy',
-      'mung bean',
-      'split pea',
-      'dal',
-      'dhal',
-      'hummus',
-    ],
-  },
-  {
-    label: 'Grains & Cereals',
-    keywords: [
-      'rice',
-      'oat',
-      'pasta',
-      'bread',
-      'flour',
-      'wheat',
-      'quinoa',
-      'barley',
-      'couscous',
-      'noodle',
-      'tortilla',
-      'wrap',
-      'bagel',
-      'cereal',
-      'granola',
-      'cracker',
-      'bulgur',
-      'semolina',
-      'polenta',
-    ],
-  },
-  {
-    label: 'Nuts & Seeds',
-    keywords: [
-      'almond',
-      'cashew',
-      'walnut',
-      'peanut',
-      'pistachio',
-      'pecan',
-      'hazelnut',
-      'nut butter',
-      'peanut butter',
-      'almond butter',
-      'chia',
-      'flax',
-      'hemp',
-      'sunflower seed',
-      'pumpkin seed',
-      'sesame',
-      'tahini',
-    ],
-  },
-  {
-    label: 'Tofu & Meat Alternatives',
-    keywords: [
-      'tofu',
-      'tempeh',
-      'seitan',
-      'quorn',
-      'beyond',
-      'impossible',
-      'meat alternative',
-      'vegan mince',
-      'vegan sausage',
-      'vegan burger',
-      'jackfruit',
-      'textured vegetable protein',
-      'tvp',
-    ],
-  },
-  {
-    label: 'Dairy & Alternatives',
-    keywords: [
-      'oat milk',
-      'almond milk',
-      'soy milk',
-      'coconut milk',
-      'rice milk',
-      'vegan cheese',
-      'vegan butter',
-      'vegan yogurt',
-      'nutritional yeast',
-      'milk',
-      'cheese',
-      'yogurt',
-      'butter',
-      'cream',
-      'egg',
-    ],
-  },
-  {
-    label: 'Condiments & Sauces',
-    keywords: [
-      'soy sauce',
-      'tamari',
-      'hot sauce',
-      'ketchup',
-      'mustard',
-      'vinegar',
-      'miso',
-      'sriracha',
-      'bbq sauce',
-      'worcestershire',
-      'fish sauce',
-      'oyster sauce',
-      'hoisin',
-      'teriyaki',
-      'mayo',
-      'salsa',
-      'pesto',
-    ],
-  },
-  {
-    label: 'Oils & Fats',
-    keywords: [
-      'olive oil',
-      'coconut oil',
-      'vegetable oil',
-      'sunflower oil',
-      'rapeseed oil',
-      'sesame oil',
-      'oil',
-      'fat',
-      'spread',
-      'margarine',
-    ],
-  },
-  {
-    label: 'Tins & Jars',
-    keywords: [
-      'tinned',
-      'canned',
-      'tin of',
-      'can of',
-      'jar of',
-      'passata',
-      'chopped tomato',
-      'coconut cream',
-      'stock',
-      'broth',
-    ],
-  },
-  {
-    label: 'Herbs & Spices',
-    keywords: [
-      'salt',
-      'pepper',
-      'cumin',
-      'coriander',
-      'turmeric',
-      'paprika',
-      'chilli',
-      'cinnamon',
-      'ginger',
-      'garlic powder',
-      'onion powder',
-      'oregano',
-      'basil',
-      'thyme',
-      'rosemary',
-      'bay leaf',
-      'cardamom',
-      'clove',
-      'nutmeg',
-      'spice',
-      'herb',
-      'seasoning',
-    ],
-  },
-  {
-    label: 'Other',
-    keywords: [],
-  },
-];
 
-function categorise(name) {
-  const lower = name.toLowerCase();
-  for (const cat of CATEGORIES) {
-    if (
-      cat.keywords.some((kw) => {
-        const regex = new RegExp(`\\b${kw}s?\\b`);
-        return regex.test(lower);
-      })
-    ) {
-      return cat.label;
-    }
-  }
-  return 'Other';
-}
 // ── Generate grocery list from week plan ─────────────────────
 function generateFromPlan(weekPlan, recipes, weekKey) {
   const plan = weekPlan[weekKey] || {};
@@ -374,8 +114,15 @@ function AddItemForm({ onAdd, onClose }) {
   );
 }
 
+function computePlanHash(weekPlan, weekKey) {
+  const plan = weekPlan[weekKey] || {};
+  return JSON.stringify(plan);
+}
+
 // ── Main grocery view ─────────────────────────────────────────
 export default function GroceryView() {
+  const groceryPlanHash = useStore((s) => s.groceryPlanHash);
+  const setGroceryPlanHash = useStore((s) => s.setGroceryPlanHash);
   const groceryList = useStore((s) => s.groceryList);
   const setGroceryList = useStore((s) => s.setGroceryList);
   const toggleGroceryItem = useStore((s) => s.toggleGroceryItem);
@@ -388,23 +135,34 @@ export default function GroceryView() {
   const [addClosing, setAddClosing] = useState(false);
 
   const weekKey = getWeekKey();
-  const checkedCount = groceryList.filter((i) => i.checked).length;
 
-  function handleGenerate() {
+  function handleGenerate(force = false) {
+    const currentHash = computePlanHash(weekPlan, weekKey);
     const generated = generateFromPlan(weekPlan, recipes, weekKey);
+
     if (generated.length === 0) {
       showToast("No ingredients found in this week's plan");
       return;
     }
-    // Merge with existing — don't duplicate
-    const existingNames = groceryList.map((i) => i.name.toLowerCase().trim());
-    const newItems = generated.filter((i) => !existingNames.includes(i.name.toLowerCase().trim()));
-    setGroceryList([...groceryList, ...newItems]);
-    showToast(`${newItems.length} items added ✓`);
+
+    if (force) {
+      // Full regenerate — replace existing generated items, keep manual ones
+      const manualItems = groceryList.filter((i) => i.manual);
+      setGroceryList([...manualItems, ...generated.map((i) => ({ ...i, manual: false }))]);
+    } else {
+      const existingNames = groceryList.map((i) => i.name.toLowerCase().trim());
+      const newItems = generated.filter(
+        (i) => !existingNames.includes(i.name.toLowerCase().trim()),
+      );
+      setGroceryList([...groceryList, ...newItems.map((i) => ({ ...i, manual: false }))]);
+    }
+
+    setGroceryPlanHash(currentHash);
+    showToast(force ? 'Grocery list regenerated ✓' : `${generated.length} items added ✓`);
   }
 
   function handleAddItem(item) {
-    setGroceryList([...groceryList, item]);
+    setGroceryList([...groceryList, { ...item, manual: true }]);
   }
 
   function closeAddSheet() {
@@ -438,51 +196,116 @@ export default function GroceryView() {
         <div className="section-title" style={{ marginBottom: 0 }}>
           GROCERY LIST
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {checkedCount > 0 && (
-            <button
-              onClick={clearCheckedGrocery}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                background: 'none',
-                color: 'var(--muted)',
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Clear checked ({checkedCount})
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Generate from plan button */}
-      <button
-        onClick={handleGenerate}
-        style={{
-          width: '100%',
-          padding: '14px',
-          background: 'rgba(255,140,66,0.08)',
-          border: '1px solid rgba(255,140,66,0.3)',
-          borderRadius: 'var(--radius)',
-          color: 'var(--accent)',
-          fontFamily: "'Bebas Neue', sans-serif",
-          fontSize: '18px',
-          letterSpacing: '1px',
-          cursor: 'pointer',
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-        }}
-      >
-        ⟳ GENERATE FROM THIS WEEK'S PLAN
-      </button>
+      {(() => {
+        const currentHash = computePlanHash(weekPlan, weekKey);
+        const planIsEmpty = Object.keys(weekPlan[weekKey] || {}).length === 0;
+        const alreadyGenerated =
+          groceryPlanHash === currentHash && groceryList.some((i) => !i.manual);
+        const planChanged = groceryPlanHash !== null && groceryPlanHash !== currentHash;
+
+        if (planIsEmpty) {
+          return (
+            <button
+              disabled
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                color: 'var(--muted)',
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: '18px',
+                letterSpacing: '1px',
+                marginBottom: '16px',
+                cursor: 'not-allowed',
+                opacity: 0.5,
+              }}
+            >
+              NO MEALS PLANNED THIS WEEK
+            </button>
+          );
+        }
+
+        if (planChanged) {
+          return (
+            <button
+              onClick={() => handleGenerate(true)}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: 'rgba(255,77,109,0.08)',
+                border: '1px solid rgba(255,77,109,0.4)',
+                borderRadius: 'var(--radius)',
+                color: '#ff4d6d',
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: '18px',
+                letterSpacing: '1px',
+                cursor: 'pointer',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+            >
+              ⚠ PLAN CHANGED — REGENERATE LIST
+            </button>
+          );
+        }
+
+        if (alreadyGenerated) {
+          return (
+            <button
+              disabled
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                color: 'var(--muted)',
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: '18px',
+                letterSpacing: '1px',
+                marginBottom: '16px',
+                cursor: 'not-allowed',
+                opacity: 0.5,
+              }}
+            >
+              ✓ LIST ALREADY GENERATED
+            </button>
+          );
+        }
+
+        return (
+          <button
+            onClick={() => handleGenerate(false)}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: 'rgba(255,140,66,0.08)',
+              border: '1px solid rgba(255,140,66,0.3)',
+              borderRadius: 'var(--radius)',
+              color: 'var(--accent)',
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: '18px',
+              letterSpacing: '1px',
+              cursor: 'pointer',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+            }}
+          >
+            ⟳ GENERATE FROM THIS WEEK'S PLAN
+          </button>
+        );
+      })()}
 
       {/* Empty state */}
       {totalItems === 0 && (

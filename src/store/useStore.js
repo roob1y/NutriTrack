@@ -13,6 +13,8 @@ const useStore = create(
         fibre: 35,
       },
 
+      groceryPlanHash: null,
+
       // ── Actions: Meal Log ────────────────────────
       logMeal: (date, meal) =>
         set((state) => {
@@ -99,6 +101,7 @@ const useStore = create(
       // ── Actions: Week Plan ───────────────────────
       setPlanSlot: (weekKey, day, slot, recipeId, servings) =>
         set((state) => ({
+          groceryPlanHash: null,
           weekPlan: {
             ...state.weekPlan,
             [weekKey]: {
@@ -117,8 +120,11 @@ const useStore = create(
           const d = { ...(week[day] || {}) };
           delete d[slot];
           week[day] = d;
-          return { weekPlan: { ...state.weekPlan, [weekKey]: week } };
+          return { groceryPlanHash: null, weekPlan: { ...state.weekPlan, [weekKey]: week } };
         }),
+
+      setGroceryPlanHash: (hash) => set({ groceryPlanHash: hash }),
+
       copyWeekPlan: (fromKey, toKey) =>
         set((state) => ({
           weekPlan: {

@@ -59,9 +59,17 @@
 - [x] Copy this week's plan to next week — warns if next week already has meals
 - [x] Log today's plan in one tap via week actions menu
 - [x] Jump to current week via week actions menu
+- [x] Recipe search bar in recipes list
+- [x] Macro range filters — min/max per macro, filter count badge, clear all
+- [x] Recipe detail — portions adjuster scales macros and ingredient amounts live
+- [x] Planner slot — portions adjuster in recipe picker, defaults to base portions
+- [x] Edit portions on assigned plan slot via ✎ icon
+- [x] Grocery list hash tracking — detects plan changes since last generation
+- [x] Generate button — 4 states: ready, already generated, plan changed, no plan
+- [x] Regenerate preserves manually added items
+- [x] Checked grocery items stay in list until manually deleted
+- [x] Grocery categories moved to src/data/groceryCategories.js
 - [ ] Copy a single day's meals to another day — pick source day, pick target day
-- [ ] Search and filter recipes by macro targets (e.g. high protein)
-- [ ] Scale a recipe by servings — adjusts all ingredient amounts and macros proportionally
 - [ ] Meal prep planning with 3/4 day presets
 
 ---
