@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import useStore from '../../store/useStore';
 import { getWeekKey, getWeekDates, DAY_LABELS, PLAN_SLOTS, showToast } from '../../utils/helpers';
 import RecipesView from './RecipesView';
@@ -11,31 +11,38 @@ function getDayTotals(dayPlan, recipes) {
     protein = 0,
     carbs = 0,
     fat = 0;
-  Object.values(dayPlan).forEach((slot) => {
-    const { recipeId, servings } = slot || {};
-    const r = recipes.find((r) => r.id === recipeId);
-    if (r) {
-      const scale = (servings || 1) / (r.servings || 1);
-      calories += (Number(r.calories) || 0) * scale;
-      protein += (Number(r.protein) || 0) * scale;
-      carbs += (Number(r.carbs) || 0) * scale;
-      fat += (Number(r.fat) || 0) * scale;
-    }
+  Object.values(dayPlan).forEach((entries) => {
+    (entries || []).forEach(({ recipeId, servings }) => {
+      const r = recipes.find((r) => r.id === recipeId);
+      if (r) {
+        const scale = (servings || 1) / (r.servings || 1);
+        calories += (Number(r.calories) || 0) * scale;
+        protein += (Number(r.protein) || 0) * scale;
+        carbs += (Number(r.carbs) || 0) * scale;
+        fat += (Number(r.fat) || 0) * scale;
+      }
+    });
   });
   if (calories === 0 && protein === 0) return null;
   return { calories, protein, carbs, fat };
 }
 
 // ── Recipe picker sheet ───────────────────────────────────────
-function RecipePicker({ onSelect, onClose }) {
+function RecipePicker({ onSelect, onClose, startDay }) {
   const recipes = useStore((s) => s.recipes);
   const [search, setSearch] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [servings, setServings] = useState(1);
+  const [isMealPrep, setIsMealPrep] = useState(false);
+  const [prepDays, setPrepDays] = useState(2);
 
   function handleConfirm() {
     if (!selectedRecipe) return;
-    onSelect(selectedRecipe.id, servings);
+    onSelect(
+      selectedRecipe.id,
+      parseFloat(servings) || 1,
+      isMealPrep ? Math.max(2, parseInt(prepDays) || 2) : 1,
+    );
   }
 
   const filtered = recipes.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
@@ -43,7 +50,7 @@ function RecipePicker({ onSelect, onClose }) {
   return (
     <div>
       <div className="section-title" style={{ marginTop: '4px' }}>
-        PICK A RECIPE
+        ADD RECIPE TO SLOT
       </div>
       <input
         className="input"
@@ -91,7 +98,8 @@ function RecipePicker({ onSelect, onClose }) {
           <div>
             <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px' }}>{r.name}</div>
             <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
-              {r.calories} kcal · P {r.protein}g · {r.servings} serving{r.servings !== 1 ? 's' : ''}
+              {r.calories} kcal · P {r.protein}g · {r.servings} base portion
+              {r.servings !== 1 ? 's' : ''}
             </div>
           </div>
           {selectedRecipe?.id === r.id && (
@@ -100,104 +108,257 @@ function RecipePicker({ onSelect, onClose }) {
         </div>
       ))}
 
-      {/* Servings adjuster — shown when a recipe is selected */}
       {selectedRecipe && (
-        <div
-          style={{
-            background: 'var(--card)',
-            border: '1px solid var(--accent)',
-            borderRadius: 'var(--radius)',
-            padding: '16px',
-            marginTop: '8px',
-            marginBottom: '16px',
-          }}
-        >
+        <>
+          {/* Portions adjuster */}
           <div
             style={{
-              fontSize: '12px',
-              color: 'var(--muted)',
-              fontWeight: 600,
-              textTransform: 'uppercase',
+              background: 'var(--card)',
+              border: '1px solid var(--accent)',
+              borderRadius: 'var(--radius)',
+              padding: '16px',
+              marginTop: '8px',
               marginBottom: '12px',
             }}
           >
-            Portions — affects grocery list
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button
-              onClick={() => setServings((s) => Math.max(0.5, Math.round((s - 1) * 10) / 10))}
+            <div
               style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                color: 'var(--text)',
-                fontSize: '20px',
-                width: '44px',
-                height: '44px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
+                fontSize: '12px',
+                color: 'var(--muted)',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                marginBottom: '12px',
               }}
             >
-              −
-            </button>
-            <input
-              className="input"
-              type="number"
-              inputMode="decimal"
-              value={servings}
-              onChange={(e) => {
-                const raw = e.target.value;
-                if (raw === '' || raw === '.') {
-                  setServings(raw);
-                  return;
+              Portions — affects grocery list
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                onClick={() =>
+                  setServings((s) =>
+                    Math.max(0.5, Math.round(((parseFloat(s) || 1) - 1) * 10) / 10),
+                  )
                 }
-                const val = parseFloat(raw);
-                if (!isNaN(val) && val > 0) setServings(val);
-              }}
+                style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  color: 'var(--text)',
+                  fontSize: '20px',
+                  width: '44px',
+                  height: '44px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                −
+              </button>
+              <input
+                className="input"
+                type="number"
+                inputMode="decimal"
+                value={servings}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === '' || raw === '.') {
+                    setServings(raw);
+                    return;
+                  }
+                  const val = parseFloat(raw);
+                  if (!isNaN(val) && val > 0) setServings(val);
+                }}
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: '28px',
+                  color: 'var(--accent)',
+                  padding: '8px',
+                }}
+              />
+              <button
+                onClick={() => setServings((s) => Math.round(((parseFloat(s) || 1) + 1) * 10) / 10)}
+                style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  color: 'var(--text)',
+                  fontSize: '20px',
+                  width: '44px',
+                  height: '44px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                +
+              </button>
+            </div>
+            <div
               style={{
-                flex: 1,
+                fontSize: '11px',
+                color: 'var(--muted)',
                 textAlign: 'center',
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '28px',
-                color: 'var(--accent)',
-                padding: '8px',
-              }}
-            />
-            <button
-              onClick={() => setServings((s) => Math.round((s + 1) * 10) / 10)}
-              style={{
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                color: 'var(--text)',
-                fontSize: '20px',
-                width: '44px',
-                height: '44px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
+                marginTop: '10px',
               }}
             >
-              +
-            </button>
+              {Math.round(
+                (selectedRecipe.calories / (selectedRecipe.servings || 1)) *
+                  (parseFloat(servings) || 1),
+              )}{' '}
+              kcal per {servings} portion{servings !== 1 ? 's' : ''}
+            </div>
           </div>
+
+          {/* Meal prep toggle */}
           <div
             style={{
-              fontSize: '11px',
-              color: 'var(--muted)',
-              textAlign: 'center',
-              marginTop: '10px',
+              background: isMealPrep ? 'rgba(255,140,66,0.08)' : 'var(--card)',
+              border: `1px solid ${isMealPrep ? 'var(--accent)' : 'var(--border)'}`,
+              borderRadius: 'var(--radius)',
+              padding: '14px 16px',
+              marginBottom: '16px',
+              cursor: 'pointer',
             }}
+            onClick={() => setIsMealPrep((v) => !v)}
           >
-            {Math.round((selectedRecipe.calories / (selectedRecipe.servings || 1)) * servings)} kcal
-            per {servings} portion{servings !== 1 ? 's' : ''}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '2px' }}>
+                  Part of a meal prep?
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                  Add this to the same slot across multiple days
+                </div>
+              </div>
+              <div
+                style={{
+                  width: '44px',
+                  height: '26px',
+                  borderRadius: '13px',
+                  background: isMealPrep ? 'var(--accent)' : 'var(--border)',
+                  position: 'relative',
+                  transition: 'background 0.2s',
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '3px',
+                    left: isMealPrep ? '21px' : '3px',
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    background: '#fff',
+                    transition: 'left 0.2s',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Days input — shown when toggled on */}
+            {isMealPrep && (
+              <div
+                style={{
+                  marginTop: '14px',
+                  borderTop: '1px solid var(--border)',
+                  paddingTop: '14px',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--muted)',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    marginBottom: '8px',
+                  }}
+                >
+                  How many days? (min 2)
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    onClick={() => setPrepDays((d) => Math.max(2, (parseInt(d) || 2) - 1))}
+                    style={{
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      color: 'var(--text)',
+                      fontSize: '20px',
+                      width: '44px',
+                      height: '44px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    −
+                  </button>
+                  <input
+                    className="input"
+                    type="number"
+                    inputMode="numeric"
+                    value={prepDays}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (e.target.value === '') {
+                        setPrepDays('');
+                        return;
+                      }
+                      if (!isNaN(val)) setPrepDays(Math.max(2, val));
+                    }}
+                    style={{
+                      flex: 1,
+                      textAlign: 'center',
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: '28px',
+                      color: 'var(--accent)',
+                      padding: '8px',
+                    }}
+                  />
+                  <button
+                    onClick={() => setPrepDays((d) => (parseInt(d) || 2) + 1)}
+                    style={{
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      color: 'var(--text)',
+                      fontSize: '20px',
+                      width: '44px',
+                      height: '44px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--muted)',
+                    textAlign: 'center',
+                    marginTop: '8px',
+                  }}
+                >
+                  Starting {startDay} for {prepDays} days
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </>
       )}
 
       <button
@@ -206,7 +367,7 @@ function RecipePicker({ onSelect, onClose }) {
         disabled={!selectedRecipe}
         style={{ marginBottom: '10px', opacity: !selectedRecipe ? 0.4 : 1 }}
       >
-        ADD TO PLAN
+        {isMealPrep ? `ADD TO ${prepDays} DAYS` : 'ADD TO SLOT'}
       </button>
       <button className="btn-secondary" onClick={onClose}>
         CANCEL
@@ -339,23 +500,90 @@ function EditPortionsSheet({ recipe, currentServings, onConfirm, onClose }) {
   );
 }
 
+function CopyDaySheet({ fromDay, weekDates, onCopy, onClose }) {
+  const [targetDay, setTargetDay] = useState(null);
+
+  return (
+    <div>
+      <div className="section-title" style={{ marginTop: '4px' }}>
+        COPY {fromDay.toUpperCase()}
+      </div>
+      <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>
+        Pick a day to copy {fromDay}'s meals into. Existing meals on the target day will be kept and
+        merged.
+      </p>
+      {DAY_LABELS.filter((d) => d !== fromDay).map((day) => {
+        const dateStr = weekDates[DAY_LABELS.indexOf(day)];
+        const dateObj = new Date(dateStr);
+        return (
+          <div
+            key={day}
+            onClick={() => setTargetDay(day)}
+            style={{
+              background: targetDay === day ? 'rgba(255,140,66,0.08)' : 'var(--card)',
+              border: `1px solid ${targetDay === day ? 'var(--accent)' : 'var(--border)'}`,
+              borderRadius: 'var(--radius)',
+              padding: '14px 16px',
+              marginBottom: '8px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: '18px',
+                letterSpacing: '1px',
+              }}
+            >
+              {day}
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+              {dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            </div>
+          </div>
+        );
+      })}
+      <button
+        className="btn-primary"
+        onClick={() => targetDay && onCopy(targetDay)}
+        disabled={!targetDay}
+        style={{ marginBottom: '10px', marginTop: '8px', opacity: !targetDay ? 0.4 : 1 }}
+      >
+        COPY TO {targetDay ? targetDay.toUpperCase() : '...'}
+      </button>
+      <button className="btn-secondary" onClick={onClose}>
+        CANCEL
+      </button>
+    </div>
+  );
+}
+
 // ── Week plan ─────────────────────────────────────────────────
 function WeekPlan() {
   const weekPlan = useStore((s) => s.weekPlan);
   const recipes = useStore((s) => s.recipes);
-  const setPlanSlot = useStore((s) => s.setPlanSlot);
-  const clearPlanSlot = useStore((s) => s.clearPlanSlot);
+  const targets = useStore((s) => s.targets);
+  const addToSlot = useStore((s) => s.addToSlot);
+  const removeFromSlot = useStore((s) => s.removeFromSlot);
+  const updateSlotEntry = useStore((s) => s.updateSlotEntry);
+  const clearSlot = useStore((s) => s.clearSlot);
+  const copyDay = useStore((s) => s.copyDay);
   const copyWeekPlan = useStore((s) => s.copyWeekPlan);
   const logMeal = useStore((s) => s.logMeal);
-  const targets = useStore((s) => s.targets);
 
   const [weekOffset, setWeekOffset] = useState(0);
-  const [picking, setPicking] = useState(null); // { day, slot }
+  const [picking, setPicking] = useState(null);
   const [pickClosing, setPickClosing] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [actionsClosing, setActionsClosing] = useState(false);
-  const [editing, setEditing] = useState(null); // { day, slot, recipe, servings }
+  const [editing, setEditing] = useState(null);
   const [editClosing, setEditClosing] = useState(false);
+  const [copyDayOpen, setCopyDayOpen] = useState(null);
+  const [copyDayClosing, setCopyDayClosing] = useState(false);
+  const longPressTimer = useRef(null);
 
   // Compute week key from offset
   const baseDate = new Date();
@@ -370,6 +598,14 @@ function WeekPlan() {
     ' — ' +
     weekEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
+  function handleLongPress(dayLabel) {
+    const dayPlan = currentPlan[dayLabel] || {};
+    if (Object.keys(dayPlan).length === 0) {
+      showToast('No meals planned on this day');
+      return;
+    }
+    setCopyDayOpen(dayLabel);
+  }
   function closeEdit() {
     setEditClosing(true);
     setTimeout(() => {
@@ -386,9 +622,28 @@ function WeekPlan() {
     }, 280);
   }
 
-  function handleSelect(recipeId, servings) {
-    setPlanSlot(weekKey, picking.day, picking.slot, recipeId, servings);
-    showToast('Added to plan ✓');
+  function closeCopyDay() {
+    setCopyDayClosing(true);
+    setTimeout(() => {
+      setCopyDayOpen(null);
+      setCopyDayClosing(false);
+    }, 280);
+  }
+
+  function handleCopyDay(targetDay) {
+    copyDay(weekKey, copyDayOpen, targetDay);
+    showToast(`${copyDayOpen} copied to ${targetDay} ✓`);
+    closeCopyDay();
+  }
+
+  function handleSelect(recipeId, servings, days) {
+    const startIndex = DAY_LABELS.indexOf(picking.day);
+    for (let i = 0; i < days; i++) {
+      const dayIndex = (startIndex + i) % 7;
+      const dayLabel = DAY_LABELS[dayIndex];
+      addToSlot(weekKey, dayLabel, picking.slot, recipeId, servings);
+    }
+    showToast(days > 1 ? `Added to ${days} days ✓` : 'Added to plan ✓');
     closePicker();
   }
 
@@ -538,7 +793,7 @@ function WeekPlan() {
       {weekDates.map((dateStr, di) => {
         const dayLabel = DAY_LABELS[di];
         const dayPlan = currentPlan[dayLabel] || {};
-        const totals = getDayTotals(dayPlan, recipes);
+        const totals = getDayTotals(dayPlan, recipes, targets);
         const hasAny = Object.keys(dayPlan).length > 0;
         const dateObj = new Date(dateStr);
         const isToday = dateStr === new Date().toISOString().slice(0, 10);
@@ -552,7 +807,17 @@ function WeekPlan() {
               borderRadius: 'var(--radius)',
               marginBottom: '12px',
               overflow: 'hidden',
+              userSelect: 'none',
             }}
+            onMouseDown={() => {
+              longPressTimer.current = setTimeout(() => handleLongPress(dayLabel), 600);
+            }}
+            onMouseUp={() => clearTimeout(longPressTimer.current)}
+            onMouseLeave={() => clearTimeout(longPressTimer.current)}
+            onTouchStart={() => {
+              longPressTimer.current = setTimeout(() => handleLongPress(dayLabel), 600);
+            }}
+            onTouchEnd={() => clearTimeout(longPressTimer.current)}
           >
             {/* Day header */}
             <div
@@ -612,104 +877,100 @@ function WeekPlan() {
             {/* Slots */}
             <div style={{ padding: '10px 16px 14px' }}>
               {PLAN_SLOTS.map((slot) => {
-                const slotData = dayPlan[slot] || {};
-                const recipeId = slotData.recipeId;
-                const recipe = recipes.find((r) => r.id === recipeId);
+                const entries = dayPlan[slot] || [];
                 return (
-                  <div
-                    key={slot}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      marginBottom: '8px',
-                    }}
-                  >
+                  <div key={slot} style={{ marginBottom: '10px' }}>
                     <div
                       style={{
                         fontSize: '11px',
                         color: 'var(--muted)',
                         fontWeight: 600,
-                        width: '70px',
-                        flexShrink: 0,
                         textTransform: 'uppercase',
+                        marginBottom: '6px',
                       }}
                     >
                       {slot}
                     </div>
-                    {recipe ? (
-                      <div
-                        style={{
-                          flex: 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          background: 'var(--surface)',
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px',
-                          padding: '8px 12px',
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontSize: '13px', fontWeight: 600 }}>{recipe.name}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
-                            {Math.round(
-                              (recipe.calories / (recipe.servings || 1)) * (slotData.servings || 1),
-                            )}{' '}
-                            kcal · {slotData.servings} portion{slotData.servings !== 1 ? 's' : ''}
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <button
-                            onClick={() =>
-                              setEditing({
-                                day: dayLabel,
-                                slot,
-                                recipe,
-                                servings: slotData.servings,
-                              })
-                            }
+                    {entries.map((entry) => {
+                      const recipe = recipes.find((r) => r.id === entry.recipeId);
+                      if (!recipe) return null;
+                      return (
+                        <div
+                          key={entry.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginBottom: '6px',
+                          }}
+                        >
+                          <div
                             style={{
-                              background: 'none',
+                              flex: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              background: 'var(--surface)',
                               border: '1px solid var(--border)',
-                              borderRadius: '6px',
-                              color: 'var(--muted)',
-                              fontSize: '13px',
-                              padding: '4px 8px',
-                              cursor: 'pointer',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
                             }}
                           >
-                            ✎
-                          </button>
-                          <button
-                            className="delete-btn"
-                            onClick={() => clearPlanSlot(weekKey, dayLabel, slot)}
-                            style={{ fontSize: '14px' }}
-                          >
-                            ✕
-                          </button>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 600 }}>{recipe.name}</div>
+                              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
+                                {Math.round(
+                                  (recipe.calories / (recipe.servings || 1)) *
+                                    (entry.servings || 1),
+                                )}{' '}
+                                kcal · {entry.servings} portion{entry.servings !== 1 ? 's' : ''}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <button
+                                onClick={() => setEditing({ day: dayLabel, slot, entry, recipe })}
+                                style={{
+                                  background: 'none',
+                                  border: '1px solid var(--border)',
+                                  borderRadius: '6px',
+                                  color: 'var(--muted)',
+                                  fontSize: '13px',
+                                  padding: '4px 8px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                ✎
+                              </button>
+                              <button
+                                className="delete-btn"
+                                onClick={() => removeFromSlot(weekKey, dayLabel, slot, entry.id)}
+                                style={{ fontSize: '14px' }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setPicking({ day: dayLabel, slot })}
-                        style={{
-                          flex: 1,
-                          padding: '8px 12px',
-                          background: 'none',
-                          border: '1px dashed var(--border)',
-                          borderRadius: '8px',
-                          color: 'var(--muted)',
-                          fontFamily: "'DM Sans', sans-serif",
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                        }}
-                      >
-                        + Add recipe
-                      </button>
-                    )}
+                      );
+                    })}
+                    <button
+                      onClick={() => setPicking({ day: dayLabel, slot })}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        background: 'none',
+                        border: '1px dashed var(--border)',
+                        borderRadius: '8px',
+                        color: 'var(--muted)',
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      + Add recipe
+                    </button>
                   </div>
                 );
               })}
@@ -843,7 +1104,49 @@ function WeekPlan() {
           </div>
         </>
       )}
-
+      {/* Copy Day sheet */}
+      {copyDayOpen && (
+        <>
+          <div
+            onClick={closeCopyDay}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 80 }}
+          />
+          <div
+            className={`bottom-sheet${copyDayClosing ? ' closing' : ''}`}
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: 'var(--surface)',
+              borderTop: '1px solid var(--border)',
+              borderRadius: '20px 20px 0 0',
+              zIndex: 90,
+              maxHeight: '85vh',
+              overflowY: 'auto',
+              padding: '0 20px 40px',
+              maxWidth: '480px',
+              margin: '0 auto',
+            }}
+          >
+            <div
+              style={{
+                width: '40px',
+                height: '4px',
+                background: 'var(--border)',
+                borderRadius: '2px',
+                margin: '12px auto 20px',
+              }}
+            />
+            <CopyDaySheet
+              fromDay={copyDayOpen}
+              weekDates={weekDates}
+              onCopy={handleCopyDay}
+              onClose={closeCopyDay}
+            />
+          </div>
+        </>
+      )}
       {/* Recipe picker sheet */}
       {picking && (
         <>
@@ -878,7 +1181,7 @@ function WeekPlan() {
                 margin: '12px auto 20px',
               }}
             />
-            <RecipePicker onSelect={handleSelect} onClose={closePicker} />
+            <RecipePicker onSelect={handleSelect} onClose={closePicker} startDay={picking?.day} />
           </div>
         </>
       )}
@@ -916,9 +1219,9 @@ function WeekPlan() {
             />
             <EditPortionsSheet
               recipe={editing.recipe}
-              currentServings={editing.servings}
+              currentServings={editing.entry.servings}
               onConfirm={(newServings) => {
-                setPlanSlot(weekKey, editing.day, editing.slot, editing.recipe.id, newServings);
+                updateSlotEntry(weekKey, editing.day, editing.slot, editing.entry.id, newServings);
                 showToast('Portions updated ✓');
                 closeEdit();
               }}

@@ -437,119 +437,79 @@ function PlannedSuggestions({ date, onLog }) {
   const dayLabel = DAY_LABELS[dayIndex];
   const dayPlan = weekPlan[weekKey]?.[dayLabel] || {};
 
-  // Filter out slots already logged today
   const loggedNames = (mealLog[date] || []).map((m) => m.name.toLowerCase());
   const suggestions = Object.entries(dayPlan)
-    .map(([slot, recipeId]) => {
-      const recipe = recipes.find((r) => r.id === recipeId);
-      if (!recipe) return null;
-      if (loggedNames.includes(recipe.name.toLowerCase())) return null;
-      return { slot, recipe };
-    })
+    .flatMap(([slot, entries]) =>
+      (entries || []).map((entry) => {
+        const recipe = recipes.find((r) => r.id === entry.recipeId);
+        if (!recipe) return null;
+        if (loggedNames.includes(recipe.name.toLowerCase())) return null;
+        return { slot, recipe, servings: entry.servings };
+      }),
+    )
     .filter(Boolean);
-
-  return (
-    <div style={{ marginBottom: '24px' }}>
-      <div
-        style={{
-          fontSize: '11px',
-          color: 'var(--muted)',
-          fontWeight: 600,
-          letterSpacing: '0.5px',
-          textTransform: 'uppercase',
-          marginBottom: '12px',
-        }}
-      >
-        Planned for today
-      </div>
-
-      {suggestions.length === 0 ? (
+  suggestions.map(({ slot, recipe, servings }, index) => (
+    <div
+      key={`${slot}-${recipe.id}-${index}`}
+      onClick={() => onLog(recipe, slot, servings)}
+      style={{
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius)',
+        padding: '14px 16px',
+        marginBottom: '8px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        cursor: 'pointer',
+        transition: 'border-color 0.2s',
+      }}
+    >
+      <div>
         <div
           style={{
-            background: 'var(--card)',
-            border: '1px dashed var(--border)',
-            borderRadius: 'var(--radius)',
-            padding: '16px',
-            textAlign: 'center',
-            color: 'var(--muted)',
-            fontSize: '13px',
+            fontSize: '11px',
+            color: 'var(--accent)',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            marginBottom: '3px',
           }}
         >
-          Nothing planned for today — add meals in the Planner tab
+          {slot}
         </div>
-      ) : (
-        suggestions.map(({ slot, recipe }) => (
-          <div
-            key={slot}
-            onClick={() => onLog(recipe, slot)}
-            style={{
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius)',
-              padding: '14px 16px',
-              marginBottom: '8px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              cursor: 'pointer',
-              transition: 'border-color 0.2s',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--accent)',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  marginBottom: '3px',
-                }}
-              >
-                {slot}
-              </div>
-              <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px' }}>
-                {recipe.name}
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                P {recipe.protein}g · C {recipe.carbs}g · F {recipe.fat}g
-              </div>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-end',
-                gap: '6px',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: '26px',
-                  color: 'var(--accent)',
-                }}
-              >
-                {recipe.calories}
-              </div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: 'var(--accent)',
-                  background: 'rgba(255,140,66,0.1)',
-                  border: '1px solid rgba(255,140,66,0.3)',
-                  borderRadius: '20px',
-                  padding: '3px 10px',
-                }}
-              >
-                Tap to log
-              </div>
-            </div>
-          </div>
-        ))
-      )}
+        <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px' }}>{recipe.name}</div>
+        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+          P {Math.round(recipe.protein * ((servings || 1) / (recipe.servings || 1)))}g · C{' '}
+          {Math.round(recipe.carbs * ((servings || 1) / (recipe.servings || 1)))}g · F{' '}
+          {Math.round(recipe.fat * ((servings || 1) / (recipe.servings || 1)))}g
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+        <div
+          style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: '26px',
+            color: 'var(--accent)',
+          }}
+        >
+          {Math.round(recipe.calories * ((servings || 1) / (recipe.servings || 1)))}
+        </div>
+        <div
+          style={{
+            fontSize: '11px',
+            fontWeight: 600,
+            color: 'var(--accent)',
+            background: 'rgba(255,140,66,0.1)',
+            border: '1px solid rgba(255,140,66,0.3)',
+            borderRadius: '20px',
+            padding: '3px 10px',
+          }}
+        >
+          Tap to log
+        </div>
+      </div>
     </div>
-  );
+  ));
 }
 
 // ── Main view ─────────────────────────────────────────────────
@@ -582,15 +542,17 @@ export default function MealsView() {
     setDate(d.toISOString().slice(0, 10));
   }
 
-  function handleLogPlanned(recipe, slot) {
+  function handleLogPlanned(recipe, slot, servings) {
+    const scale = (servings || 1) / (recipe.servings || 1);
     logMeal(date, {
       name: recipe.name,
       mealType: slot,
-      calories: recipe.calories,
-      protein: recipe.protein,
-      carbs: recipe.carbs,
-      fat: recipe.fat,
-      fibre: recipe.fibre,
+      recipeId: recipe.id,
+      calories: Math.round(recipe.calories * scale),
+      protein: Math.round(recipe.protein * scale * 10) / 10,
+      carbs: Math.round(recipe.carbs * scale * 10) / 10,
+      fat: Math.round(recipe.fat * scale * 10) / 10,
+      fibre: Math.round(recipe.fibre * scale * 10) / 10,
       time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     });
     showToast(`${recipe.name} logged ✓`);

@@ -13,6 +13,7 @@ const useStore = create(
         fibre: 35,
       },
 
+      mealLog: {},
       groceryPlanHash: null,
 
       // ── Actions: Meal Log ────────────────────────
@@ -99,39 +100,116 @@ const useStore = create(
         })),
 
       // ── Actions: Week Plan ───────────────────────
-      setPlanSlot: (weekKey, day, slot, recipeId, servings) =>
+      addToSlot: (weekKey, day, slot, recipeId, servings) =>
+        set((state) => {
+          const existing = state.weekPlan[weekKey]?.[day]?.[slot] || [];
+          return {
+            groceryPlanHash: null,
+            weekPlan: {
+              ...state.weekPlan,
+              [weekKey]: {
+                ...state.weekPlan[weekKey],
+                [day]: {
+                  ...(state.weekPlan[weekKey]?.[day] || {}),
+                  [slot]: [...existing, { recipeId, servings, id: Date.now().toString() }],
+                },
+              },
+            },
+          };
+        }),
+
+      removeFromSlot: (weekKey, day, slot, entryId) =>
+        set((state) => {
+          const existing = state.weekPlan[weekKey]?.[day]?.[slot] || [];
+          const updated = existing.filter((e) => e.id !== entryId);
+          const day_ = { ...(state.weekPlan[weekKey]?.[day] || {}) };
+          if (updated.length === 0) {
+            delete day_[slot];
+          } else {
+            day_[slot] = updated;
+          }
+          return {
+            groceryPlanHash: null,
+            weekPlan: {
+              ...state.weekPlan,
+              [weekKey]: {
+                ...state.weekPlan[weekKey],
+                [day]: day_,
+              },
+            },
+          };
+        }),
+
+      updateSlotEntry: (weekKey, day, slot, entryId, servings) =>
+        set((state) => {
+          const existing = state.weekPlan[weekKey]?.[day]?.[slot] || [];
+          return {
+            groceryPlanHash: null,
+            weekPlan: {
+              ...state.weekPlan,
+              [weekKey]: {
+                ...state.weekPlan[weekKey],
+                [day]: {
+                  ...(state.weekPlan[weekKey]?.[day] || {}),
+                  [slot]: existing.map((e) => (e.id === entryId ? { ...e, servings } : e)),
+                },
+              },
+            },
+          };
+        }),
+
+      clearSlot: (weekKey, day, slot) =>
+        set((state) => {
+          const day_ = { ...(state.weekPlan[weekKey]?.[day] || {}) };
+          delete day_[slot];
+          return {
+            groceryPlanHash: null,
+            weekPlan: {
+              ...state.weekPlan,
+              [weekKey]: {
+                ...state.weekPlan[weekKey],
+                [day]: day_,
+              },
+            },
+          };
+        }),
+
+      copyDay: (weekKey, fromDay, toDay) =>
+        set((state) => {
+          const fromDayPlan = state.weekPlan[weekKey]?.[fromDay] || {};
+          const copied = Object.fromEntries(
+            Object.entries(fromDayPlan).map(([slot, entries]) => [
+              slot,
+              entries.map((e) => ({ ...e, id: Date.now().toString() + Math.random() })),
+            ]),
+          );
+          const existingDay = state.weekPlan[weekKey]?.[toDay] || {};
+          const merged = { ...existingDay };
+          Object.entries(copied).forEach(([slot, entries]) => {
+            merged[slot] = [...(merged[slot] || []), ...entries];
+          });
+          return {
+            groceryPlanHash: null,
+            weekPlan: {
+              ...state.weekPlan,
+              [weekKey]: {
+                ...state.weekPlan[weekKey],
+                [toDay]: merged,
+              },
+            },
+          };
+        }),
+
+      copyWeekPlan: (fromKey, toKey) =>
         set((state) => ({
           groceryPlanHash: null,
           weekPlan: {
             ...state.weekPlan,
-            [weekKey]: {
-              ...state.weekPlan[weekKey],
-              [day]: {
-                ...(state.weekPlan[weekKey]?.[day] || {}),
-                [slot]: { recipeId, servings },
-              },
-            },
+            [toKey]: JSON.parse(JSON.stringify(state.weekPlan[fromKey] || {})),
           },
         })),
-
-      clearPlanSlot: (weekKey, day, slot) =>
-        set((state) => {
-          const week = { ...(state.weekPlan[weekKey] || {}) };
-          const d = { ...(week[day] || {}) };
-          delete d[slot];
-          week[day] = d;
-          return { groceryPlanHash: null, weekPlan: { ...state.weekPlan, [weekKey]: week } };
-        }),
 
       setGroceryPlanHash: (hash) => set({ groceryPlanHash: hash }),
-
-      copyWeekPlan: (fromKey, toKey) =>
-        set((state) => ({
-          weekPlan: {
-            ...state.weekPlan,
-            [toKey]: { ...(state.weekPlan[fromKey] || {}) },
-          },
-        })),
 
       // ── Actions: Grocery ─────────────────────────
       setGroceryList: (list) => set({ groceryList: list }),
