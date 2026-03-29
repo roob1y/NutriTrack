@@ -54,15 +54,15 @@
 
 ## v1.4 — Planner Improvements
 
-- [ ] Day calorie total on each plan day — shows under/over vs target
-- [ ] Copy this week's plan to next week
-- [ ] "Log today's plan" — one tap logs all planned meals for today
-- [ ] Duplicate a recipe
-- [ ] Scale a recipe by servings — adjusts all ingredient amounts and macros proportionally
+- [x] Day calorie total on each plan day — shows under/over vs target
+- [x] Duplicate a recipe
+- [x] Copy this week's plan to next week — warns if next week already has meals
+- [x] Log today's plan in one tap via week actions menu
+- [x] Jump to current week via week actions menu
+- [ ] Copy a single day's meals to another day — pick source day, pick target day
 - [ ] Search and filter recipes by macro targets (e.g. high protein)
-- [ ] Meal prep planning — assign a recipe to multiple consecutive days at once
-  - Presets for 3-day and 4-day meal preps
-  - Select which slot (Breakfast / Lunch / Dinner / Snack) to fill
+- [ ] Scale a recipe by servings — adjusts all ingredient amounts and macros proportionally
+- [ ] Meal prep planning with 3/4 day presets
 
 ---
 

@@ -104,11 +104,15 @@ function WeekPlan() {
   const recipes = useStore((s) => s.recipes);
   const setPlanSlot = useStore((s) => s.setPlanSlot);
   const clearPlanSlot = useStore((s) => s.clearPlanSlot);
+  const copyWeekPlan = useStore((s) => s.copyWeekPlan);
+  const logMeal = useStore((s) => s.logMeal);
   const targets = useStore((s) => s.targets);
 
   const [weekOffset, setWeekOffset] = useState(0);
   const [picking, setPicking] = useState(null); // { day, slot }
   const [pickClosing, setPickClosing] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [actionsClosing, setActionsClosing] = useState(false);
 
   // Compute week key from offset
   const baseDate = new Date();
@@ -135,6 +139,63 @@ function WeekPlan() {
     setPlanSlot(weekKey, picking.day, picking.slot, recipeId);
     showToast('Added to plan ✓');
     closePicker();
+  }
+
+  function closeActions() {
+    setActionsClosing(true);
+    setTimeout(() => {
+      setActionsOpen(false);
+      setActionsClosing(false);
+    }, 280);
+  }
+
+  function handleCopyToNextWeek() {
+    const nextBase = new Date(baseDate);
+    nextBase.setDate(nextBase.getDate() + 7);
+    const nextWeekKey = getWeekKey(nextBase.toISOString().slice(0, 10));
+    const nextWeekHasPlan = weekPlan[nextWeekKey] && Object.keys(weekPlan[nextWeekKey]).length > 0;
+
+    if (nextWeekHasPlan) {
+      if (!window.confirm('Next week already has meals planned. Overwrite it?')) return;
+    }
+
+    copyWeekPlan(weekKey, nextWeekKey);
+    showToast('Plan copied to next week ✓');
+    closeActions();
+  }
+
+  function handleLogTodaysPlan() {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayLabel = DAY_LABELS[(new Date().getDay() + 6) % 7];
+    const todayPlan = currentPlan[todayLabel] || {};
+    const slots = Object.entries(todayPlan);
+
+    if (slots.length === 0) {
+      showToast('Nothing planned for today');
+      closeActions();
+      return;
+    }
+
+    let logged = 0;
+    slots.forEach(([slot, recipeId]) => {
+      const recipe = recipes.find((r) => r.id === recipeId);
+      if (!recipe) return;
+      logMeal(todayStr, {
+        name: recipe.name,
+        mealType: slot,
+        recipeId: recipe.id,
+        calories: recipe.calories,
+        protein: recipe.protein,
+        carbs: recipe.carbs,
+        fat: recipe.fat,
+        fibre: recipe.fibre,
+        time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+      });
+      logged++;
+    });
+
+    showToast(`${logged} meal${logged !== 1 ? 's' : ''} logged ✓`);
+    closeActions();
   }
 
   const currentPlan = weekPlan[weekKey] || {};
@@ -196,6 +257,30 @@ function WeekPlan() {
         </button>
       </div>
 
+      {/* Week actions button */}
+      <button
+        onClick={() => setActionsOpen(true)}
+        style={{
+          width: '100%',
+          padding: '12px',
+          background: 'none',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius)',
+          color: 'var(--muted)',
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: '13px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+        }}
+      >
+        Week actions
+      </button>
+
       {/* Day cards */}
       {weekDates.map((dateStr, di) => {
         const dayLabel = DAY_LABELS[di];
@@ -217,36 +302,59 @@ function WeekPlan() {
             }}
           >
             {/* Day header */}
-<div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
-  <div>
-    <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '18px', letterSpacing: '1px', color: isToday ? 'var(--accent)' : 'var(--text)' }}>
-      {dayLabel}
-    </span>
-    <span style={{ fontSize: '12px', color: 'var(--muted)', marginLeft: '8px' }}>
-      {dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-    </span>
-  </div>
-  {totals ? (
-    <div style={{ textAlign: 'right' }}>
-      <div style={{
-        fontFamily: "'Bebas Neue', sans-serif",
-        fontSize: '20px',
-        color: totals.calories > targets.calories ? '#ff4d6d' : 'var(--accent)',
-      }}>
-        {Math.round(totals.calories)} kcal
-      </div>
-      <div style={{ fontSize: '11px', fontWeight: 600, color: totals.calories > targets.calories ? '#ff4d6d' : 'var(--muted)' }}>
-        {totals.calories > targets.calories
-          ? `${Math.round(totals.calories - targets.calories)} over`
-          : `${Math.round(targets.calories - totals.calories)} left`}
-      </div>
-    </div>
-  ) : (
-    <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>
-      No meals planned
-    </div>
-  )}
-</div>
+            <div
+              style={{
+                padding: '14px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderBottom: '1px solid var(--border)',
+              }}
+            >
+              <div>
+                <span
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: '18px',
+                    letterSpacing: '1px',
+                    color: isToday ? 'var(--accent)' : 'var(--text)',
+                  }}
+                >
+                  {dayLabel}
+                </span>
+                <span style={{ fontSize: '12px', color: 'var(--muted)', marginLeft: '8px' }}>
+                  {dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                </span>
+              </div>
+              {totals ? (
+                <div style={{ textAlign: 'right' }}>
+                  <div
+                    style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: '20px',
+                      color: totals.calories > targets.calories ? '#ff4d6d' : 'var(--accent)',
+                    }}
+                  >
+                    {Math.round(totals.calories)} kcal
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      color: totals.calories > targets.calories ? '#ff4d6d' : 'var(--muted)',
+                    }}
+                  >
+                    {totals.calories > targets.calories
+                      ? `${Math.round(totals.calories - targets.calories)} over`
+                      : `${Math.round(targets.calories - totals.calories)} left`}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>
+                  No meals planned
+                </div>
+              )}
+            </div>
 
             {/* Slots */}
             <div style={{ padding: '10px 16px 14px' }}>
@@ -329,6 +437,132 @@ function WeekPlan() {
           </div>
         );
       })}
+
+      {/* Week actions sheet */}
+      {actionsOpen && (
+        <>
+          <div
+            onClick={closeActions}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 80 }}
+          />
+          <div
+            className={`bottom-sheet${actionsClosing ? ' closing' : ''}`}
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: 'var(--surface)',
+              borderTop: '1px solid var(--border)',
+              borderRadius: '20px 20px 0 0',
+              zIndex: 90,
+              padding: '0 20px 40px',
+              maxWidth: '480px',
+              margin: '0 auto',
+            }}
+          >
+            <div
+              style={{
+                width: '40px',
+                height: '4px',
+                background: 'var(--border)',
+                borderRadius: '2px',
+                margin: '12px auto 24px',
+              }}
+            />
+            <div className="section-title" style={{ marginTop: '4px' }}>
+              WEEK ACTIONS
+            </div>
+
+            {/* Log today's plan */}
+            <div
+              onClick={handleLogTodaysPlan}
+              style={{
+                background: 'var(--card)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                padding: '16px',
+                marginBottom: '10px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+              }}
+            >
+              <div style={{ fontSize: '28px' }}>📋</div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px' }}>
+                  Log today's plan
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                  Instantly log all meals planned for today
+                </div>
+              </div>
+            </div>
+
+            {/* Jump to current week */}
+            {weekOffset !== 0 && (
+              <div
+                onClick={() => {
+                  setWeekOffset(0);
+                  closeActions();
+                }}
+                style={{
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius)',
+                  padding: '16px',
+                  marginBottom: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                }}
+              >
+                <div style={{ fontSize: '28px' }}>📍</div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px' }}>
+                    Go to current week
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                    Jump back to this week's plan
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Copy to next week */}
+            <div
+              onClick={handleCopyToNextWeek}
+              style={{
+                background: 'var(--card)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                padding: '16px',
+                marginBottom: '10px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+              }}
+            >
+              <div style={{ fontSize: '28px' }}>📅</div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px' }}>
+                  Copy to next week
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                  Duplicate this week's meal plan to next week
+                </div>
+              </div>
+            </div>
+
+            <button className="btn-secondary" onClick={closeActions} style={{ marginTop: '8px' }}>
+              CANCEL
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Recipe picker sheet */}
       {picking && (

@@ -119,6 +119,13 @@ const useStore = create(
           week[day] = d;
           return { weekPlan: { ...state.weekPlan, [weekKey]: week } };
         }),
+      copyWeekPlan: (fromKey, toKey) =>
+        set((state) => ({
+          weekPlan: {
+            ...state.weekPlan,
+            [toKey]: { ...(state.weekPlan[fromKey] || {}) },
+          },
+        })),
 
       // ── Actions: Grocery ─────────────────────────
       setGroceryList: (list) => set({ groceryList: list }),
