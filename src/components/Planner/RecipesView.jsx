@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import useStore from '../../store/useStore';
 import { showToast, todayStr } from '../../utils/helpers';
+import FoodSearch from '../Common/FoodSearch';
 
 const EMPTY_INGREDIENT = {
   name: '',
@@ -15,6 +16,20 @@ const EMPTY_INGREDIENT = {
 
 // ── Ingredient row ────────────────────────────────────────────
 function IngredientRow({ ing, onChange, onRemove }) {
+  const [searching, setSearching] = useState(false);
+
+  function handleFoodSelect(food) {
+    onChange('name', food.name);
+    onChange('amount', food.amount);
+    onChange('unit', food.unit);
+    onChange('calories', food.calories);
+    onChange('protein', food.protein);
+    onChange('carbs', food.carbs);
+    onChange('fat', food.fat);
+    onChange('fibre', food.fibre);
+    setSearching(false);
+  }
+
   return (
     <div
       style={{
@@ -25,84 +40,148 @@ function IngredientRow({ ing, onChange, onRemove }) {
         marginBottom: '10px',
       }}
     >
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-        <input
-          className="input"
-          placeholder="Ingredient name"
-          value={ing.name}
-          onChange={(e) => onChange('name', e.target.value)}
-          style={{ flex: 2 }}
-        />
-        <input
-          className="input"
-          placeholder="Amount"
-          type="number"
-          inputMode="decimal"
-          value={ing.amount}
-          onChange={(e) => onChange('amount', e.target.value)}
-          style={{ flex: 1 }}
-        />
-        <select
-          value={ing.unit}
-          onChange={(e) => onChange('unit', e.target.value)}
-          style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: '8px',
-            color: 'var(--text)',
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: '14px',
-            padding: '12px 8px',
-            width: '60px',
-          }}
-        >
-          {['g', 'ml', 'tbsp', 'tsp', 'cup', 'pc'].map((u) => (
-            <option key={u}>{u}</option>
-          ))}
-        </select>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
-        {['calories', 'protein', 'carbs', 'fat', 'fibre'].map((key) => (
-          <div key={key}>
+      {searching ? (
+        <div>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '10px',
+            }}
+          >
             <div
               style={{
-                fontSize: '10px',
+                fontSize: '12px',
                 color: 'var(--muted)',
                 fontWeight: 600,
-                textAlign: 'center',
-                marginBottom: '4px',
                 textTransform: 'uppercase',
               }}
             >
-              {key === 'calories' ? 'kcal' : key}
+              Search food database
             </div>
+            <button
+              onClick={() => setSearching(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--muted)',
+                cursor: 'pointer',
+                fontSize: '16px',
+                padding: 0,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          <FoodSearch onSelect={handleFoodSelect} placeholder="Search ingredient..." />
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
             <input
               className="input"
+              placeholder="Ingredient name"
+              value={ing.name}
+              onChange={(e) => onChange('name', e.target.value)}
+              style={{ flex: 2 }}
+            />
+            <input
+              className="input"
+              placeholder="Amount"
               type="number"
               inputMode="decimal"
-              placeholder="0"
-              value={ing[key]}
-              onChange={(e) => onChange(key, e.target.value)}
-              style={{ padding: '8px', textAlign: 'center', fontSize: '13px' }}
+              value={ing.amount}
+              onChange={(e) => onChange('amount', e.target.value)}
+              style={{ flex: 1 }}
             />
+            <select
+              value={ing.unit}
+              onChange={(e) => onChange('unit', e.target.value)}
+              style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                color: 'var(--text)',
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '14px',
+                padding: '12px 8px',
+                width: '60px',
+              }}
+            >
+              {['g', 'ml', 'tbsp', 'tsp', 'cup', 'pc'].map((u) => (
+                <option key={u}>{u}</option>
+              ))}
+            </select>
           </div>
-        ))}
-      </div>
-      <button
-        onClick={onRemove}
-        style={{
-          marginTop: '10px',
-          background: 'none',
-          border: 'none',
-          color: 'var(--muted)',
-          fontSize: '12px',
-          fontWeight: 600,
-          cursor: 'pointer',
-          padding: 0,
-        }}
-      >
-        Remove ingredient
-      </button>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(5, 1fr)',
+              gap: '6px',
+              marginBottom: '8px',
+            }}
+          >
+            {['calories', 'protein', 'carbs', 'fat', 'fibre'].map((key) => (
+              <div key={key}>
+                <div
+                  style={{
+                    fontSize: '10px',
+                    color: 'var(--muted)',
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    marginBottom: '4px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {key === 'calories' ? 'kcal' : key}
+                </div>
+                <input
+                  className="input"
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={ing[key]}
+                  onChange={(e) => onChange(key, e.target.value)}
+                  style={{ padding: '8px', textAlign: 'center', fontSize: '13px' }}
+                />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button
+              onClick={() => setSearching(true)}
+              style={{
+                background: 'none',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                color: 'var(--accent)',
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '12px',
+                fontWeight: 600,
+                padding: '6px 12px',
+                cursor: 'pointer',
+              }}
+            >
+              🔍 Search food database
+            </button>
+            <button
+              onClick={onRemove}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--muted)',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              Remove
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
