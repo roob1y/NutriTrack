@@ -104,6 +104,7 @@ function WeekPlan() {
   const recipes = useStore((s) => s.recipes);
   const setPlanSlot = useStore((s) => s.setPlanSlot);
   const clearPlanSlot = useStore((s) => s.clearPlanSlot);
+  const targets = useStore((s) => s.targets);
 
   const [weekOffset, setWeekOffset] = useState(0);
   const [picking, setPicking] = useState(null); // { day, slot }
@@ -216,42 +217,36 @@ function WeekPlan() {
             }}
           >
             {/* Day header */}
-            <div
-              style={{
-                padding: '14px 16px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderBottom: '1px solid var(--border)',
-              }}
-            >
-              <div>
-                <span
-                  style={{
-                    fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: '18px',
-                    letterSpacing: '1px',
-                    color: isToday ? 'var(--accent)' : 'var(--text)',
-                  }}
-                >
-                  {dayLabel}
-                </span>
-                <span style={{ fontSize: '12px', color: 'var(--muted)', marginLeft: '8px' }}>
-                  {dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                </span>
-              </div>
-              {totals && (
-                <div
-                  style={{
-                    fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: '20px',
-                    color: 'var(--accent)',
-                  }}
-                >
-                  {Math.round(totals.calories)} kcal
-                </div>
-              )}
-            </div>
+<div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
+  <div>
+    <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '18px', letterSpacing: '1px', color: isToday ? 'var(--accent)' : 'var(--text)' }}>
+      {dayLabel}
+    </span>
+    <span style={{ fontSize: '12px', color: 'var(--muted)', marginLeft: '8px' }}>
+      {dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+    </span>
+  </div>
+  {totals ? (
+    <div style={{ textAlign: 'right' }}>
+      <div style={{
+        fontFamily: "'Bebas Neue', sans-serif",
+        fontSize: '20px',
+        color: totals.calories > targets.calories ? '#ff4d6d' : 'var(--accent)',
+      }}>
+        {Math.round(totals.calories)} kcal
+      </div>
+      <div style={{ fontSize: '11px', fontWeight: 600, color: totals.calories > targets.calories ? '#ff4d6d' : 'var(--muted)' }}>
+        {totals.calories > targets.calories
+          ? `${Math.round(totals.calories - targets.calories)} over`
+          : `${Math.round(targets.calories - totals.calories)} left`}
+      </div>
+    </div>
+  ) : (
+    <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>
+      No meals planned
+    </div>
+  )}
+</div>
 
             {/* Slots */}
             <div style={{ padding: '10px 16px 14px' }}>
