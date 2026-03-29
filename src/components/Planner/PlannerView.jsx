@@ -53,7 +53,7 @@ function RecipePicker({ onSelect, onClose }) {
           }}
         >
           {recipes.length === 0
-            ? 'No recipes saved yet — add some in the Recipes section below'
+            ? 'No recipes saved yet — add some in the Recipes tab'
             : 'No matches'}
         </div>
       )}
