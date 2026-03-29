@@ -37,7 +37,7 @@
 
 ## v1.2 — Bug Fixes
 
-- [ ] Progress view weekly calorie bar chart not displaying correctly
+- [x] Progress view weekly calorie bar chart not displaying correctly
 
 ---
 
