@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import useStore from '../../store/useStore';
 import {
   todayStr,
@@ -11,6 +11,7 @@ import {
   DAY_LABELS,
   getWeekDates,
 } from '../../utils/helpers';
+import FoodSearch from '../Common/FoodSearch';
 
 // ── Calorie ring ──────────────────────────────────────────────
 function CalorieRing({ consumed, target }) {
@@ -107,6 +108,16 @@ function AddMealSheet({ date, onClose }) {
     r.name.toLowerCase().includes(recipeSearch.toLowerCase()),
   );
 
+  const handleFoodSelect = useCallback((food) => {
+    setName(food.name);
+    setCalories(String(food.calories));
+    setProtein(String(food.protein));
+    setCarbs(String(food.carbs));
+    setFat(String(food.fat));
+    setFibre(String(food.fibre));
+    setMode('free');
+  }, []);
+
   function handleSaveFree() {
     if (!name.trim() || !calories) return;
     logMeal(date, {
@@ -145,11 +156,11 @@ function AddMealSheet({ date, onClose }) {
       <div className="section-title" style={{ marginTop: '4px' }}>
         ADD MEAL
       </div>
-
       {/* Mode toggle */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         {[
           { id: 'free', label: 'Free entry' },
+          { id: 'search', label: 'Search foods' },
           { id: 'recipe', label: 'From recipe' },
         ].map(({ id, label }) => (
           <button
@@ -175,7 +186,6 @@ function AddMealSheet({ date, onClose }) {
           </button>
         ))}
       </div>
-
       {/* Meal type — always visible */}
       <div style={{ marginBottom: '20px' }}>
         <div
@@ -332,6 +342,16 @@ function AddMealSheet({ date, onClose }) {
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Search mode */}
+      {mode === 'search' && (
+        <div style={{ display: mode === 'search' ? 'block' : 'none', marginBottom: '20px' }}>
+          <FoodSearch
+            placeholder="Search foods e.g. chicken breast..."
+            onSelect={handleFoodSelect}
+          />
         </div>
       )}
 
