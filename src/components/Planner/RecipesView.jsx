@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import useStore from '../../store/useStore';
 import { showToast, todayStr } from '../../utils/helpers';
 import FoodSearch from '../Common/FoodSearch';
+import { hapticSuccess } from '../../utils/haptics';
 
 const EMPTY_INGREDIENT = {
   name: '',
@@ -226,7 +227,7 @@ function RecipeForm({ existing, onClose }) {
     setIngredients((prev) => prev.filter((_, idx) => idx !== i));
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!name.trim()) return;
     const recipe = {
       name: name.trim(),
@@ -253,13 +254,16 @@ function RecipeForm({ existing, onClose }) {
       onClose();
     } else {
       addRecipe(recipe);
+      await hapticSuccess();
       showToast('Recipe saved ✓');
       onClose();
     }
   }
 
-  function confirmUpdate(updateToday) {
+  async function confirmUpdate(updateToday) {
     updateRecipe(existing.id, pendingSave);
+    await hapticSuccess();
+
     if (updateToday) {
       const today = todayStr();
       const { calories, protein, carbs, fat, fibre } = pendingSave;
@@ -803,7 +807,7 @@ export default function RecipesView() {
     }, 280);
   }
 
-  function handleLogMeal(recipe, servings) {
+  async function handleLogMeal(recipe, servings) {
     const today = new Date().toISOString().slice(0, 10);
     const scale = (servings || 1) / (recipe.servings || 1);
     logMeal(today, {
@@ -817,6 +821,7 @@ export default function RecipesView() {
       fibre: Math.round(recipe.fibre * scale * 10) / 10,
       time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     });
+    await hapticSuccess();
     showToast(`${recipe.name} logged ✓`);
     setSelected(null);
   }

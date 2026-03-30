@@ -35,8 +35,8 @@ body {
   overflow-x: hidden;
   max-width: 480px;
   margin: 0 auto;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: var(--sat, env(safe-area-inset-top));
+  padding-bottom: var(--sab, env(safe-area-inset-bottom));
 }
 
 /* ── Header ── */

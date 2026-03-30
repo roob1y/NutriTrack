@@ -43,6 +43,18 @@ function getCached(query) {
     return null;
   }
 }
+
+function setCached(query, results) {
+  try {
+    const cache = readCache();
+    const key = query.toLowerCase().trim();
+    cache[key] = { results, timestamp: Date.now() };
+    writeCache(cache);
+  } catch {
+    // ignore
+  }
+}
+
 // ── Normalise USDA result ─────────────────────────────────────
 function normaliseUSDA(food) {
   const nutrients = food.foodNutrients || [];
@@ -97,9 +109,9 @@ export async function searchUSDA(query) {
   );
   if (!res.ok) throw new Error('USDA search failed');
   const data = await res.json();
-  const results = (data.foods || []).map(normaliseUSDA).filter((f) => f.name && f.calories > 0);
+  const results = (data.foods || []).map(normaliseUSDA).filter((f) => f.name);
 
-  setCached(cacheKey, results);
+  if (results.length > 0) setCached(cacheKey, results);
   return results;
 }
 
@@ -112,9 +124,9 @@ export async function searchOFF(query) {
   const res = await fetch(`${OFF_PROXY}?query=${encodeURIComponent(query)}`);
   if (!res.ok) throw new Error('OFF search failed');
   const data = await res.json();
-  const results = (data.products || []).map(normaliseOFF).filter((f) => f.name && f.calories > 0);
+  const results = (data.products || []).map(normaliseOFF).filter((f) => f.name);
 
-  setCached(cacheKey, results);
+  if (results.length > 0) setCached(cacheKey, results);
   return results;
 }
 

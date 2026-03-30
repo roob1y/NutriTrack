@@ -92,21 +92,28 @@
 
 ## v1.7 - Android Build
 
-- [ ] App icon — create NutriTrack branded icon (orange accent, matching FitTrack style)
-- [ ] Splash screen — branded splash screen replacing Capacitor default
-- [ ] Safe area insets — inject CSS variables from MainActivity.java (--sat, --sab) matching FitTrack approach
-- [ ] Android back button — handle via @capacitor/app, navigate within app not exit
+- [x] Build and deploy to S23 for testing
+- [x] Safe area insets — inject CSS variables from MainActivity.java (--sat, --sab) matching FitTrack approach
+- [x] Haptic feedback — on meal log, recipe save, grocery item tick
 - [ ] Keep screen awake — prevent screen sleeping on Log and Planner views
-- [ ] Haptic feedback — on meal log, recipe save, grocery item tick
-- [ ] Build and deploy to S23 for testing
+- [ ] Android back button — handle via @capacitor/app, navigate within app not exit
 - [ ] Fix any Android-specific layout issues
-- [ ] Signed APK for Play Store
-- [ ] Play Store listing — screenshots, description, privacy policy
+
+## v1.7.1 — Food Database Stability
+
+- [ ] OFF proxy (Render free tier) is unreliable — randomly drops requests when warm
+- [ ] Test Capacitor.isNativePlatform() branch — direct OFF API call on Android, proxy in browser
+- [ ] If direct Android call works, remove proxy dependency entirely
+- [ ] If not, investigate upgrading Render or self-hosting proxy
+- [ ] Remove all debug console.log statements from foodDatabase.js and FoodSearch.jsx
 
 ---
 
 ## Future
-
+- [ ] Signed APK for Play Store
+- [ ] Play Store listing — screenshots, description, privacy policy
+- [ ] Splash screen — branded splash screen replacing Capacitor default
+- [ ] App icon — create NutriTrack branded icon (orange accent, matching FitTrack style)
 - [ ] Export weekly log as branded PDF (jspdf)
 - [ ] Export meal log as CSV
 - [ ] Meal templates — save a frequently eaten meal without it being a full recipe

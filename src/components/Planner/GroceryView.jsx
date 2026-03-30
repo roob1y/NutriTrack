@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import useStore from '../../store/useStore';
 import { getWeekKey, getWeekDates, showToast } from '../../utils/helpers';
 import { CATEGORIES, categorise } from '../../data/groceryCategories';
+import { hapticLight } from '../../utils/haptics';
+
 
 // ── Category definitions ──────────────────────────────────────
 
@@ -50,7 +52,7 @@ function AddItemForm({ onAdd, onClose }) {
   const [amount, setAmount] = useState('');
   const [unit, setUnit] = useState('g');
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!name.trim()) return;
     onAdd({
       id: Date.now().toString(),
@@ -60,6 +62,7 @@ function AddItemForm({ onAdd, onClose }) {
       checked: false,
       category: categorise(name),
     });
+    await hapticLight();
     showToast('Item added ✓');
     onClose();
   }

@@ -12,6 +12,8 @@ import {
   getWeekDates,
 } from '../../utils/helpers';
 import FoodSearch from '../Common/FoodSearch';
+import { hapticSuccess } from '../../utils/haptics';
+
 
 // ── Calorie ring ──────────────────────────────────────────────
 function CalorieRing({ consumed, target }) {
@@ -118,7 +120,7 @@ function AddMealSheet({ date, onClose }) {
     setMode('free');
   }, []);
 
-  function handleSaveFree() {
+  async function handleSaveFree() {
     if (!name.trim() || !calories) return;
     logMeal(date, {
       name: name.trim(),
@@ -134,7 +136,7 @@ function AddMealSheet({ date, onClose }) {
     onClose();
   }
 
-  function handleSaveRecipe() {
+  async function handleSaveRecipe() {
     if (!selectedRecipe) return;
     logMeal(date, {
       name: selectedRecipe.name,
@@ -562,7 +564,7 @@ export default function MealsView() {
     setDate(d.toISOString().slice(0, 10));
   }
 
-  function handleLogPlanned(recipe, slot, servings) {
+  async function handleLogPlanned(recipe, slot, servings) {
     const scale = (servings || 1) / (recipe.servings || 1);
     logMeal(date, {
       name: recipe.name,
@@ -575,6 +577,8 @@ export default function MealsView() {
       fibre: Math.round(recipe.fibre * scale * 10) / 10,
       time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     });
+    await hapticSuccess();
+
     showToast(`${recipe.name} logged ✓`);
   }
 

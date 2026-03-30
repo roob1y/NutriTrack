@@ -26,7 +26,6 @@ export default React.memo(function FoodSearch({
     if (!val.trim() || val.trim().length < 3) return;
 
     debounceRef.current = setTimeout(async () => {
-      console.log('API call firing for:', val);
       setState((prev) => ({ ...prev, loading: true }));
 
       try {
@@ -46,6 +45,7 @@ export default React.memo(function FoodSearch({
           .toLowerCase()
           .split(' ')
           .filter((w) => w.length > 2);
+
         const sorted = combined
           .map((r) => {
             const nameLower = r.name.toLowerCase();

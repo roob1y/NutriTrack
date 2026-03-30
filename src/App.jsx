@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { App as CapApp } from '@capacitor/app';
+import { KeepAwake } from '@capacitor-community/keep-awake';
 import MealsView from './components/Meals/MealsView';
 import PlannerView from './components/Planner/PlannerView';
 import ProgressView from './components/Progress/ProgressView';
@@ -8,6 +10,38 @@ export default function App() {
   const [currentView, setCurrentView] = useState('log');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsClosing, setSettingsClosing] = useState(false);
+
+  // ── Android back button ───────────────────────────────────
+  useEffect(() => {
+    const handler = CapApp.addListener('backButton', () => {
+      if (settingsOpen) {
+        closeSettings();
+        return;
+      }
+      if (currentView !== 'log') {
+        setCurrentView('log');
+        return;
+      }
+      // On root view — minimise app rather than exit
+      CapApp.minimizeApp();
+    });
+    return () => {
+      handler.then((h) => h.remove());
+    };
+  }, [currentView, settingsOpen]);
+
+  // ── Keep screen awake on Log and Planner ─────────────────
+  useEffect(() => {
+    const shouldKeepAwake = currentView === 'log' || currentView === 'planner';
+    if (shouldKeepAwake) {
+      KeepAwake.keepAwake().catch(() => {});
+    } else {
+      KeepAwake.allowSleep().catch(() => {});
+    }
+    return () => {
+      KeepAwake.allowSleep().catch(() => {});
+    };
+  }, [currentView]);
 
   function closeSettings() {
     setSettingsClosing(true);
