@@ -101,3 +101,8 @@
 - [ ] FitTrack integration — training day type adjusts daily calorie target
 - [ ] BodyTrack integration — flag muscle loss risk if deficit too aggressive
 - [ ] On-device AI meal suggestions
+- [ ] Additional food database sources for richer search results:
+  - Nutritionix API — comprehensive branded and whole food database
+  - Edamam — strong on recipes and branded foods
+  - Open Food Facts native Android SDK — more reliable than server-side requests
+  - Barcode scanner via Capacitor camera — scan packaged foods directly
