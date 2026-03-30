@@ -105,7 +105,6 @@
 - [ ] Test Capacitor.isNativePlatform() branch — direct OFF API call on Android, proxy in browser
 - [ ] If direct Android call works, remove proxy dependency entirely
 - [ ] If not, investigate upgrading Render or self-hosting proxy
-- [ ] Remove all debug console.log statements from foodDatabase.js and FoodSearch.jsx
 
 ---
 
