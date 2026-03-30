@@ -95,8 +95,8 @@
 - [x] Build and deploy to S23 for testing
 - [x] Safe area insets — inject CSS variables from MainActivity.java (--sat, --sab) matching FitTrack approach
 - [x] Haptic feedback — on meal log, recipe save, grocery item tick
-- [ ] Keep screen awake — prevent screen sleeping on Log and Planner views
-- [ ] Android back button — handle via @capacitor/app, navigate within app not exit
+- [x] Keep screen awake — prevent screen sleeping on Log and Planner views
+- [x] Android back button — handle via @capacitor/app, navigate within app not exit
 - [ ] Fix any Android-specific layout issues
 
 ## v1.7.1 — Food Database Stability
@@ -110,6 +110,7 @@
 ---
 
 ## Future
+
 - [ ] Signed APK for Play Store
 - [ ] Play Store listing — screenshots, description, privacy policy
 - [ ] Splash screen — branded splash screen replacing Capacitor default
