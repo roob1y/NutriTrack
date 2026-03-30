@@ -1,19 +1,10 @@
 const USDA_API_KEY = import.meta.env.VITE_USDA_API_KEY;
 const USDA_BASE = 'https://api.nal.usda.gov/fdc/v1';
 const OFF_PROXY = import.meta.env.VITE_OFF_PROXY_URL;
-console.log('OFF_PROXY:', import.meta.env.VITE_OFF_PROXY_URL);
 
 // ── Normalise USDA result ─────────────────────────────────────
 function normaliseUSDA(food) {
   const nutrients = food.foodNutrients || [];
-  console.log(
-    'raw food:',
-    food.description,
-    'servingSize:',
-    food.servingSize,
-    'servingSizeUnit:',
-    food.servingSizeUnit,
-  );
 
   function getNutrient(...ids) {
     for (const id of ids) {
@@ -31,7 +22,7 @@ function normaliseUSDA(food) {
     carbs: getNutrient(1005, '205'),
     fat: getNutrient(1004, '204'),
     fibre: getNutrient(1079, '291'),
-    servingSize: 100, // USDA nutrients are always per 100g
+    servingSize: 100,
     servingUnit: 'g',
     source: 'USDA',
   };
@@ -55,7 +46,7 @@ function normaliseOFF(product) {
 }
 
 // ── Search USDA ───────────────────────────────────────────────
-async function searchUSDA(query) {
+export async function searchUSDA(query) {
   const res = await fetch(
     `${USDA_BASE}/foods/search?query=${encodeURIComponent(query)}&pageSize=10&api_key=${USDA_API_KEY}`,
   );
@@ -65,67 +56,12 @@ async function searchUSDA(query) {
 }
 
 // ── Search Open Food Facts ────────────────────────────────────
+export async function searchOFF(query) {
+  console.log('searchOFF called with:', query, 'proxy:', OFF_PROXY);
 
-async function searchOFF(query) {
-  const res = await fetch(offUrl, {
-    headers: { 'User-Agent': 'NutriTrack - personal health app' },
-  });
-
-  const contentType = res.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) {
-    return new Response(JSON.stringify({ products: [] }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
-  }
+  const res = await fetch(`${OFF_PROXY}?query=${encodeURIComponent(query)}`);
   const data = await res.json();
-  console.log(
-    'OFF results:',
-    off.map((r) => r.name),
-  );
   return (data.products || []).map(normaliseOFF).filter((f) => f.name && f.calories > 0);
-}
-
-// ── Main search — USDA first, OFF fallback ────────────────────
-export async function searchFoodDatabase(query) {
-  if (!query.trim()) return [];
-
-  const [usdaResults, offResults] = await Promise.allSettled([searchUSDA(query), searchOFF(query)]);
-
-  const usda = usdaResults.status === 'fulfilled' ? usdaResults.value : [];
-  const off = offResults.status === 'fulfilled' ? offResults.value : [];
-
-  // Check if USDA results are relevant — do any contain all query words?
-  const queryWords = query
-    .toLowerCase()
-    .split(' ')
-    .filter((w) => w.length > 2);
-  const usdaRelevant = usda.filter((r) =>
-    queryWords.every((word) => r.name.toLowerCase().includes(word)),
-  );
-
-  let combined;
-  if (usdaRelevant.length === 0 && off.length > 0) {
-    // USDA has no relevant results — OFF first
-    combined = [...off];
-    usda.forEach((r) => {
-      if (!combined.some((c) => c.name.toLowerCase() === r.name.toLowerCase())) {
-        combined.push(r);
-      }
-    });
-  } else {
-    // USDA has relevant results — USDA first
-    combined = [...usda];
-    off.forEach((r) => {
-      if (!combined.some((c) => c.name.toLowerCase() === r.name.toLowerCase())) {
-        combined.push(r);
-      }
-    });
-  }
-
-  return combined.slice(0, 10);
 }
 
 // ── Scale macros to a given amount ───────────────────────────

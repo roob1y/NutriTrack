@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import useStore from '../../store/useStore';
 import {
   todayStr,
@@ -107,6 +107,16 @@ function AddMealSheet({ date, onClose }) {
   const filteredRecipes = recipes.filter((r) =>
     r.name.toLowerCase().includes(recipeSearch.toLowerCase()),
   );
+
+  const handleFoodSelect = useCallback((food) => {
+    setName(food.name);
+    setCalories(String(food.calories));
+    setProtein(String(food.protein));
+    setCarbs(String(food.carbs));
+    setFat(String(food.fat));
+    setFibre(String(food.fibre));
+    setMode('free');
+  }, []);
 
   function handleSaveFree() {
     if (!name.trim() || !calories) return;
@@ -337,18 +347,10 @@ function AddMealSheet({ date, onClose }) {
 
       {/* Search mode */}
       {mode === 'search' && (
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ display: mode === 'search' ? 'block' : 'none', marginBottom: '20px' }}>
           <FoodSearch
             placeholder="Search foods e.g. chicken breast..."
-            onSelect={(food) => {
-              setName(food.name);
-              setCalories(food.calories);
-              setProtein(food.protein);
-              setCarbs(food.carbs);
-              setFat(food.fat);
-              setFibre(food.fibre);
-              setMode('free');
-            }}
+            onSelect={handleFoodSelect}
           />
         </div>
       )}
