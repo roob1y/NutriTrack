@@ -85,10 +85,23 @@
 
 ## v1.6 — Food Database
 
-- [ ] Open Food Facts API search on add meal and add ingredient forms
-- [ ] USDA FoodData Central as fallback
-- [ ] Barcode scanner via Capacitor camera
-- [ ] Cache recent lookups locally
+- [x] Open Food Facts API search on add meal and add ingredient forms
+- [x] USDA FoodData Central as fallback
+- [x] Barcode scanner via Capacitor camera
+- [x] Cache recent lookups locally
+
+## v1.7 - Android Build
+
+- [ ] App icon — create NutriTrack branded icon (orange accent, matching FitTrack style)
+- [ ] Splash screen — branded splash screen replacing Capacitor default
+- [ ] Safe area insets — inject CSS variables from MainActivity.java (--sat, --sab) matching FitTrack approach
+- [ ] Android back button — handle via @capacitor/app, navigate within app not exit
+- [ ] Keep screen awake — prevent screen sleeping on Log and Planner views
+- [ ] Haptic feedback — on meal log, recipe save, grocery item tick
+- [ ] Build and deploy to S23 for testing
+- [ ] Fix any Android-specific layout issues
+- [ ] Signed APK for Play Store
+- [ ] Play Store listing — screenshots, description, privacy policy
 
 ---
 
@@ -101,6 +114,8 @@
 - [ ] FitTrack integration — training day type adjusts daily calorie target
 - [ ] BodyTrack integration — flag muscle loss risk if deficit too aggressive
 - [ ] On-device AI meal suggestions
+- [ ] Push notifications — meal reminders, streak nudges
+- [ ] Health Connect integration — passive data from Samsung Health
 - [ ] Additional food database sources for richer search results:
   - Nutritionix API — comprehensive branded and whole food database
   - Edamam — strong on recipes and branded foods
