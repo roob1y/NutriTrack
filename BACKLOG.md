@@ -106,6 +106,82 @@
 - [ ] If direct Android call works, remove proxy dependency entirely
 - [ ] If not, investigate upgrading Render or self-hosting proxy
 
+## V1.8.1 Quick Fixes & Polish
+
+XS
+- [ ] Remove visible scrollbar on the right when scrolling (hide via CSS)
+- [ ] Remove the calendar element from the header — unnecessary chrome
+- [ ] Decrease the size of the settings icon
+- [ ] Grocery list — disable the "Generate from this week's plan" button when the log is empty
+- [ ] Progress view — remove Current Streak and Longest Streak
+- [ ] Progress view — reorder sections: Today's Macros → This Week → Calorie Trend → Best Macro Day
+
+S
+- [ ] Log meal modal — move Meal Name, Search Recipes and Search Foods inputs above the meal type buttons
+- [ ] Log meal modal — Log Meal and Cancel buttons should always be visible and sit next to each other
+- [ ] Planner — Week Plan, Recipes and Grocery tabs should remain visible no matter how far the user scrolls (sticky)
+- [ ] Planner — Weeks action button should always be visible no matter where the user scrolls (sticky)
+
+---
+
+## V1.8.2 Bug Fixes
+
+S
+- [ ] When navigating to a previous day the user cannot get back to the current day — fix forward navigation
+- [ ] Log meal cancel button is partially hidden by Android navigation controls at the bottom — apply correct safe area insets
+
+M
+- [] Grocery list — Generate grocery list not working in current app version — investigate and fix
+
+---
+
+## v1.8.3 UX Improvements
+
+S
+- [ ] Slider sheets — should be draggable down to dismiss
+- [ ] Grocery list — add haptic feedback when marking off food items
+
+M
+- [ ] Log meal — convert from a slider/sheet into its own dedicated full screen window
+- [ ] Log meal screen — add two additional action buttons alongside the standard log: "Add from planner" (auto-populates today's planned meals) and "Remove all meals" (clears the day's log with a confirmation prompt)
+- [ ] Planner — each day in the week view takes too much space, collapse days by default with an expand toggle, or reduce card size significantly
+- [ ] Planner — holding down on a recipe card reveals Edit, Duplicate and Delete options. Move duplicate and delete off the main recipe view entirely. Delete requires a confirmation prompt.
+- [ ] Planner — "Add recipe to slot" — if there are many recipes, open a dedicated full screen recipe picker rather than an inline list, then return to the week day screen on selection
+- [ ] Planner — copying a day of food should allow selecting multiple destination days at once
+- [ ] Planner — when viewing a different week, holding a card should not show "Log today's plan"
+- [ ] Recipe screen — remove the portion controller and Log as Meal button from the recipe detail view. Logging should only happen from the log screen. Portions are controlled at log time. Recipe screen simplifies to just the recipe content plus Edit on hold tap.
+
+---
+
+## v1.8.4 Nav Refactor 
+
+L
+- [ ] Move Log, Planner and Progress from current position to a persistent bottom navigation bar, consistent with the FitTrack nav refactor. Do on its own branch.
+
+---
+
+## v1.8.5 New Feature — TDEE / BMI / Weight Loss Calculator 
+
+L
+- [ ] Dedicated view (accessible from nav or settings) containing:
+  - BMI calculator — height and weight inputs, result with category label
+  - TDEE calculator — age, height, weight, activity level inputs
+  - Weight loss planner — slider to set target weekly loss (e.g. 0.25kg to 1kg per week), outputs adjusted daily calorie target
+  - Results feed back into NutriTrack daily calorie and macro targets automatically
+
+---
+
+## v1.8.6 Complex / New Features
+
+L
+- [ ] Haptics — extend haptic feedback beyond grocery list to other key interactions (logging a meal, completing a day, hitting macro targets)
+
+- [ ] Recipe Import with Auto Nutritional Lookup
+Allow the user to import recipes by pasting a recipe name or ingredient list. The app attempts to automatically match each ingredient against the USDA and Open Food Facts APIs to retrieve nutritional data. For any ingredient it cannot match confidently, the user is presented with a manual resolution screen where they can search for the correct item or enter values by hand. Once all ingredients are resolved the recipe is saved to the library with full macro data intact, exactly as if it had been built manually.
+
+XL
+- [] Barcode scanning — integrate Capacitor camera plugin with Open Food Facts barcode lookup for fast packaged food logging
+
 ---
 
 ## Future
