@@ -110,15 +110,18 @@
 
 XS
 - [ ] Remove visible scrollbar on the right when scrolling (hide via CSS)
-- [ ] Remove the calendar element from the header — unnecessary chrome
+- [ ] Remove the calendar element from the header
 - [ ] Decrease the size of the settings icon
-- [ ] Grocery list — disable the "Generate from this week's plan" button when the log is empty
 - [ ] Progress view — remove Current Streak and Longest Streak
 - [ ] Progress view — reorder sections: Today's Macros → This Week → Calorie Trend → Best Macro Day
+- [ ] Remove the timestamp from logged food entries — the time does not need to be displayed
+- [ ] Recipe macro values in the log — display to 1 decimal place for accuracy
+- [ ] Log view — display grams if the entry is a single food item, or number of portions if the entry is a recipe
 
 S
 - [ ] Log meal modal — move Meal Name, Search Recipes and Search Foods inputs above the meal type buttons
 - [ ] Log meal modal — Log Meal and Cancel buttons should always be visible and sit next to each other
+- [S] Rename "Log a Meal" to "Quick Log" to communicate that planning the week and adding to the log from the planner is the primary intended workflow
 - [ ] Planner — Week Plan, Recipes and Grocery tabs should remain visible no matter how far the user scrolls (sticky)
 - [ ] Planner — Weeks action button should always be visible no matter where the user scrolls (sticky)
 
@@ -131,7 +134,7 @@ S
 - [ ] Log meal cancel button is partially hidden by Android navigation controls at the bottom — apply correct safe area insets
 
 M
-- [] Grocery list — Generate grocery list not working in current app version — investigate and fix
+- [ ] Grocery list — Generate grocery list not working in current app version — investigate and fix
 
 ---
 
@@ -140,6 +143,7 @@ M
 S
 - [ ] Slider sheets — should be draggable down to dismiss
 - [ ] Grocery list — add haptic feedback when marking off food items
+- [ ] Meal type auto-detection — when logging a food, automatically assign Breakfast, Lunch or Dinner based on the time of day. Snack, Pre-workout and Post-workout remain manual tags the user selects themselves.
 
 M
 - [ ] Log meal — convert from a slider/sheet into its own dedicated full screen window
@@ -149,6 +153,9 @@ M
 - [ ] Planner — "Add recipe to slot" — if there are many recipes, open a dedicated full screen recipe picker rather than an inline list, then return to the week day screen on selection
 - [ ] Planner — copying a day of food should allow selecting multiple destination days at once
 - [ ] Planner — when viewing a different week, holding a card should not show "Log today's plan"
+- [ ] Planner — allow whole foods to be added to week plan days as well as recipes, not just recipes only
+- [ ] Planner — week actions should include a "Copy different week to current week" option as well as the existing copy to next week
+- [ ] Planner — instead of week actions only adding today's food to the log, add the ability to add the whole week's plan to the log at once. Each logged item shows a tick the user must check to confirm they actually consumed it.
 - [ ] Recipe screen — remove the portion controller and Log as Meal button from the recipe detail view. Logging should only happen from the log screen. Portions are controlled at log time. Recipe screen simplifies to just the recipe content plus Edit on hold tap.
 
 ---
@@ -179,28 +186,32 @@ L
 - [ ] Recipe Import with Auto Nutritional Lookup
 Allow the user to import recipes by pasting a recipe name or ingredient list. The app attempts to automatically match each ingredient against the USDA and Open Food Facts APIs to retrieve nutritional data. For any ingredient it cannot match confidently, the user is presented with a manual resolution screen where they can search for the correct item or enter values by hand. Once all ingredients are resolved the recipe is saved to the library with full macro data intact, exactly as if it had been built manually.
 
+- [ ] Hello Fresh API integration — pull Hello Fresh meal data and nutritional information directly into NutriTrack. Particularly useful for users who cook Hello Fresh meals regularly and want accurate logging without manual entry.
+- [ ] Recipe photos — allow the user to add a photo to a recipe either taken with the camera or chosen from the gallery. Useful for visual identification and for sharing recipes in future social features. Requires Capacitor camera plugin.
+
 XL
-- [] Barcode scanning — integrate Capacitor camera plugin with Open Food Facts barcode lookup for fast packaged food logging
+- [ ] Barcode scanning — integrate Capacitor camera plugin with Open Food Facts barcode lookup for fast packaged food logging
 
 ---
 
 ## Future
 
-- [ ] Signed APK for Play Store
-- [ ] Play Store listing — screenshots, description, privacy policy
-- [ ] Splash screen — branded splash screen replacing Capacitor default
-- [ ] App icon — create NutriTrack branded icon (orange accent, matching FitTrack style)
-- [ ] Export weekly log as branded PDF (jspdf)
-- [ ] Export meal log as CSV
-- [ ] Meal templates — save a frequently eaten meal without it being a full recipe
-- [ ] Quick-add from recent meals — last 10 meals accessible in one tap
-- [ ] FitTrack integration — training day type adjusts daily calorie target
-- [ ] BodyTrack integration — flag muscle loss risk if deficit too aggressive
-- [ ] On-device AI meal suggestions
-- [ ] Push notifications — meal reminders, streak nudges
-- [ ] Health Connect integration — passive data from Samsung Health
-- [ ] Additional food database sources for richer search results:
+- Signed APK for Play Store
+- Play Store listing — screenshots, description, privacy policy
+- Splash screen — branded splash screen replacing Capacitor default
+- App icon — create NutriTrack branded icon (orange accent, matching FitTrack style)
+- Export weekly log as branded PDF (jspdf)
+- Export meal log as CSV
+- Meal templates — save a frequently eaten meal without it being a full recipe
+- Quick-add from recent meals — last 10 meals accessible in one tap
+- FitTrack integration — training day type adjusts daily calorie target
+- BodyTrack integration — flag muscle loss risk if deficit too aggressive
+- On-device AI meal suggestions
+- Push notifications — meal reminders, streak nudges
+- Health Connect integration — passive data from Samsung Health
+- Additional food database sources for richer search results:
   - Nutritionix API — comprehensive branded and whole food database
   - Edamam — strong on recipes and branded foods
   - Open Food Facts native Android SDK — more reliable than server-side requests
   - Barcode scanner via Capacitor camera — scan packaged foods directly
+Social features for recipe sharing, meal inspiration and accountability between users
